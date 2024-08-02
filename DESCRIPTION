@@ -1,0 +1,18 @@
+Package: daytrading
+Title: Functions for creating day trading report
+Version: 0.0.0.9000
+Authors@R: 
+    person("Valery", "Petrushin", , "vapetr3@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package has functions for generating day trading report.
+License: `use_gpl3_license()`
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports:
+    knitr,
+    lubridate,
+    magrittr,
+    plotly,
+    scales,
+    yaml
