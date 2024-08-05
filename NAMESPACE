@@ -3,6 +3,7 @@
 export(add_charts_monthly)
 export(generateAccountCode)
 export(generateMonthCode)
+export(generateOneDayReport)
 export(generateYearCode)
 export(getParams)
 export(getTickerStatistics)

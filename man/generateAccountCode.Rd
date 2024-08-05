@@ -4,9 +4,11 @@
 \alias{generateAccountCode}
 \title{Generate R Markdown code for an account's option day trading}
 \usage{
-generateAccountCode(TRADES, ac, curDate, WD, cap, isTest = FALSE)
+generateAccountCode(tradesFile, TRADES, ac, curDate, WD, cap, isTest = FALSE)
 }
 \arguments{
+\item{tradesFile}{is the file name of one day option trades}
+
 \item{TRADES}{is the frame of trade data with the following fields:
 "accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
 "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day"}

@@ -440,6 +440,8 @@ processOneDayTrades = function(TRANS) {
 #'         "Target","Gross Entry/Exit","# contracts","Commission","Gross P or L",
 #'         "Winner","Loser","Capital At Risk","Porfolio Size","","ROI","Win %",
 #'         "Loss %","Duration Of Signal","Win $","Loss $"
+#' @export
+#'
 generateOneDayReport = function(TRADES,header = TRUE) {
 
   # == 1 == Output the header
@@ -933,6 +935,7 @@ getTradingDates = function() {
 
 #' Generate R Markdown code for an account's option day trading
 #'
+#' @param tradesFile is the file name of one day option trades
 #' @param TRADES is the frame of trade data with the following fields:
 #'               "accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
 #'               "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day"
@@ -946,14 +949,14 @@ getTradingDates = function() {
 #' @return a string of R Markdown code for the account's trades
 #' @export
 #'
-generateAccountCode = function(TRADES,ac,curDate,WD,cap,isTest = FALSE) {
+generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,isTest = FALSE) {
   title = "Option Day Trading Report"
   author = paste0("Account: ",ac)
   date = paste0("Date: ",curDate)
   txt = add_header(title,author,date)
   txt = paste(txt,add_prefix1(),sep = "\n")
   txt = paste(txt,add_prefix2(),sep = "\n")
-  txt = paste(txt,add_prefix3(),sep = "\n")
+  txt = paste(txt,add_prefix3(cap,tradesFile),sep = "\n")
   acStats = getStatistics(TRADES,WD,cap)
   if (isTest) {
     print(paste('Total statistics for account',ac))
