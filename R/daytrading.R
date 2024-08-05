@@ -429,7 +429,7 @@ processOneDayTrades = function(TRANS) {
 
 #' Generates low level report for option day trades as a csv file
 #'
-#'Processes transactions to get option day trades
+#'Processes trades to get option day report for each trade
 #' @param TRADES The data frame of trades with the following fields:
 #'         "accountId","entryDate","exitDate","underSymbol","symbol",
 #'         "entryPrice","exitPrice","amount","entryCommis","exitCommis","pl",
