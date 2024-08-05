@@ -950,6 +950,16 @@ getTradingDates = function() {
 #' @export
 #'
 generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,isTest = FALSE) {
+  print(paste0("tradesFile = ",tradesFile))
+  print("TRADES:")
+  print(head(TRADES,1))
+  print(paste0("ac = ",ac))
+  print(paste0("curDate = ",curDate))
+  print("WD:")
+  print(head(WD,1))
+  print(paste0("cap = ",cap))
+  print(paste0("isTest = ",isTest))
+
   title = "Option Day Trading Report"
   author = paste0("Account: ",ac)
   date = paste0("Date: ",curDate)
