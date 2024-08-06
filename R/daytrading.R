@@ -578,9 +578,6 @@ add_prefix1 = function() {
 #' @return text of R Markdown code
 add_prefix2 = function() {
   txt = paste("```{r echo = FALSE, warning = FALSE,message=FALSE}",
-              "library(lubridate)",
-              "library(plotly)",
-              "library(scales)",
               "library(daytrading)",
               "```","",sep = "\n")
   return(txt)
