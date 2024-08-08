@@ -558,7 +558,7 @@ getTradingStatistics = function(TRADES,WD,cap) {
 #'
 add_header = function(title,author,date) {
   txt = paste("---",paste0("title: \"",title,"\""),paste0("author: \"",author,"\""),
-              paste0("date: \"",date,"\""),"output:","  html_document:","    css: \"style.css\"",
+              paste0("date: \"",date,"\""),"output:","  html_document:","    css: \"./www/style.css\"",
               "---","",sep="\n")
   return(txt)
 } # end add_header
