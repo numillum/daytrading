@@ -390,7 +390,7 @@ processOneDayTrades = function(TRANS) {
               } #endif
               pl = pl + as.numeric(tr$cost)
               exitCommis = exitCommis + as.numeric(tr$fees)
-              if (amount - examount == 0) {
+              if (amount + examount == 0) {
                 entered = 0
                 exited = 0
                 exitDate = sub('+0000','',sub('T',' ',tr$date,fixed=T),fixed = T)
