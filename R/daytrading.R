@@ -381,7 +381,7 @@ processOneDayTrades = function(TRANS) {
           entered = 0; exited = 0
           for (k in 1:nrow(TR1)){ # Loop for every trade
             tr = TR1[k,]
-            #print(tr)
+            # print(tr)
             if (tr$positionEffect == 'OPENING') {
               if (entered == 0) {
                 entryDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
@@ -421,7 +421,7 @@ processOneDayTrades = function(TRANS) {
                 # Save the record
                 eDate = getTradeDate(entryDate)
                 roi = pl/capAtRisk*100
-                rec = c(tr$accountNumber,entryDate,exitDate,tr$underSymbol,tr$symbol,entryPrice,exitPrice,amount,entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
+                rec = c(tr$accountNumber,entryDate,exitDate,tr$underlyingSymbol,tr$symbol,entryPrice,exitPrice,amount,entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
                 TRADES = rbind(TRADES,rec)
                 entryDate = exitDate = ''
                 amount = pl = entryPrice = exitPrice = 0;
