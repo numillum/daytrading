@@ -27,6 +27,20 @@ toUSD = function(money){
   scales::dollar(money,largest_with_cents = 1e+10)
 } #end toUSD
 
+#' Gets the last name
+#'
+#' @param name  is a string that has a name separated by "."
+#'
+#' @return the substring after the last "."
+#'
+#' @examples
+#' getLastName("aaa.bbb.ccc"). # returns "ccc"
+#'
+getLastName = function(name) {
+  arr = strsplit(name,'.',fixed = T)[[1]]
+  return(arr[length(arr)])
+} #end getLastName
+
 
 #' Splits Schwab's transaction date and gets the date part of it
 #'
@@ -340,20 +354,25 @@ processOneDayTrades = function(TRANS) {
   TRADES = data.frame(NULL)
   isFirst = TRUE
   TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == 'OPTION'),]
-  TrDay = unlist(sapply(TRANSOP$date,splitTransDate,simplify = F))
-  TrTime = unlist(sapply(TRANSOP$date,splitTransTime,simplify = F))
+  TrDay = unlist(sapply(TRANSOP$time,splitTransDate,simplify = F))
+  TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
-  TRANSOP$time = TrTime
+  TRANSOP$trTime = TrTime
+  TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
+  for (k in 1:nrow(TRANSOP)) {
+    TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
+  } #end for k
+
   uDays = unique(TRANSOP$day)
 
   for (d in uDays){ # Loop for every day
     TR = TRANSOP[(TRANSOP$day == d),]
     if (nrow(TR) > 1) {
-      uCS = unique(TR$cusip)
+      uCS = unique(TR$underlyingCusip)
       for (cs in uCS) { # Loop for every symbol
-        TR1 = TR[TR$cusip == cs,]
+        TR1 = TR[TR$underlyingCusip == cs,]
         if (nrow(TR1) > 1){
-          TR1 = TR1[order(TR1$time),]
+          TR1 = TR1[order(TR1$trTime),]
           entryDate = exitDate = ''
           amount = pl = entryPrice = exitPrice = 0;
           entryCommis = exitCommis = 0;
@@ -363,7 +382,7 @@ processOneDayTrades = function(TRANS) {
             #print(tr)
             if (tr$positionEffect == 'OPENING') {
               if (entered == 0) {
-                entryDate = sub('+0000','',sub('T',' ',tr$date,fixed=T),fixed = T)
+                entryDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
                 entryYear = getTradeDateYear(entryDate)
                 entryMonth = getTradeDateMonth(entryDate)
                 entryPrice = as.numeric(tr$price)
@@ -393,14 +412,14 @@ processOneDayTrades = function(TRANS) {
               if (amount + examount == 0) {
                 entered = 0
                 exited = 0
-                exitDate = sub('+0000','',sub('T',' ',tr$date,fixed=T),fixed = T)
+                exitDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
                 winner = ifelse(pl > 0,1,0)
                 capAtRisk = entryPrice*amount*100
                 tradeDur = as.numeric(difftime(exitDate,entryDate,units="secs"))
                 # Save the record
                 eDate = getTradeDate(entryDate)
                 roi = pl/capAtRisk*100
-                rec = c(tr$accountId,entryDate,exitDate,tr$underSymbol,tr$symbol,entryPrice,exitPrice,amount,entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
+                rec = c(tr$accountNumber,entryDate,exitDate,tr$underSymbol,tr$symbol,entryPrice,exitPrice,amount,entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
                 TRADES = rbind(TRADES,rec)
                 entryDate = exitDate = ''
                 amount = pl = entryPrice = exitPrice = 0;
@@ -426,6 +445,7 @@ processOneDayTrades = function(TRANS) {
   TRADES$tradeDur  = as.numeric(TRADES$tradeDur)
   return(TRADES)
 } # end processOneDayTrades
+
 
 #' Generates low level report for option day trades as a csv file
 #'
