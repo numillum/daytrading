@@ -22,5 +22,5 @@ The data frame with the following columns:
 "Loss \%","Duration Of Signal","Win $","Loss $"
 }
 \description{
-Processes transactions to get option day trades
+Processes trades to get option day report for each trade
 }

@@ -33,8 +33,10 @@ toUSD = function(money){
 #'
 #' @return the substring after the last "."
 #'
+#' @export
+#'
 #' @examples
-#' getLastName("aaa.bbb.ccc"). # returns "ccc"
+#' getLastName("aaa.bbb.ccc")  # returns "ccc"
 #'
 getLastName = function(name) {
   arr = strsplit(name,'.',fixed = T)[[1]]
