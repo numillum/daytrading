@@ -362,7 +362,9 @@ processOneDayTrades = function(TRANS) {
   TRANSOP$trTime = TrTime
   TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
   for (k in 1:nrow(TRANSOP)) {
-    TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
+    if (TRANSOP$positionEffect[k] == '') {
+      TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
+    } #endif
   } #end for k
 
   uDays = unique(TRANSOP$day)
@@ -370,9 +372,9 @@ processOneDayTrades = function(TRANS) {
   for (d in uDays){ # Loop for every day
     TR = TRANSOP[(TRANSOP$day == d),]
     if (nrow(TR) > 1) {
-      uCS = unique(TR$underlyingCusip)
-      for (cs in uCS) { # Loop for every symbol
-        TR1 = TR[TR$underlyingCusip == cs,]
+      uSYMB = unique(TR$symbol)
+      for (symb in uSYMB) { # Loop for every symbol
+        TR1 = TR[TR$symbol == symb,]
         if (nrow(TR1) > 1){
           TR1 = TR1[order(TR1$trTime),]
           entryDate = exitDate = ''
@@ -430,7 +432,7 @@ processOneDayTrades = function(TRANS) {
             } #endif
           } # end for k
         } #endif
-      } #end for cs
+      } #end for symb
     } #endif
   } #end for d
   TRADES = data.frame(TRADES)
@@ -686,55 +688,55 @@ add_charts_monthly = function(cap,tmData) {
   # Value chart
   fig1 = plotly::plot_ly(tmData,x =~count, y = ~value, type = chType,name = 'Value (USD)')
   fig1 = fig1 %>% plotly::layout(title = "Value",yaxis = list(title = 'USD'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
 
   # Yield chart
   avgYield = mean(tmData$yield)
   fig2 = plotly::plot_ly(tmData,x =~count, y = ~yield, type = chType,name = 'Yield (USD)')
   # colors=RColorBrewer::brewer.pal(12, "Set3"), color = 'orange'
   fig2 = plotly::add_trace(fig2,y = rep(avgYield,nrow(tmData)),name = 'Avg Yield',
-                   type='scatter',mode='lines',
-                   line = list(color = 'red',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'red',width = 3,dash = 'dash'))
   fig2 = fig2 %>% plotly::layout(title = "Yield",yaxis = list(title = 'USD'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # ROI chart
   avgROI = mean(tmData$roi)
   fig3 = plotly::plot_ly(tmData,x =~count, y = ~roi, type = chType,name = 'ROI %')
   fig3 = plotly::add_trace(fig3,y = rep(avgROI,nrow(tmData)),name = 'Avg ROI',
-                   type='scatter',mode='lines',
-                   line = list(color = 'pink',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'pink',width = 3,dash = 'dash'))
   fig3 = fig3 %>% plotly::layout(title = "ROI",yaxis = list(title = '%'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Number of Trades chart
   avgTrades = mean(tmData$ntrades)
   fig4 = plotly::plot_ly(tmData,x =~count, y = ~ntrades, type = chType,name = '#Trades')
   fig4 = plotly::add_trace(fig4,y = rep(avgTrades,nrow(tmData)),name = 'Avg #trades',
-                   type='scatter',mode='lines',
-                   line = list(color = 'blue',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'blue',width = 3,dash = 'dash'))
   fig4 = fig4 %>% plotly::layout(title = "Number of Trades",yaxis = list(title = 'Count'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Contracts per trade chart
   avgContr = mean(tmData$contrtrade)
   fig5 = plotly::plot_ly(tmData,x =~count, y = ~contrtrade, type = chType, name = 'Contracts/Trade')
   fig5 = plotly::add_trace(fig5,y = rep(avgContr,nrow(tmData)),name = 'Avg contracts/trade',
-                   type='scatter',mode='lines',
-                   line = list(color = 'darkgreen',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'darkgreen',width = 3,dash = 'dash'))
   fig5 = fig5 %>% plotly::layout(title = "Contracts per Trade",yaxis = list(title = 'Contracts/Trade'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Trade duration chart
   avgDur = mean(tmData$duration)
   fig6 = plotly::plot_ly(tmData,x =~count, y = ~duration, type = chType, name = 'Duration (Sec)')
   fig6 = plotly::add_trace(fig6,y = rep(avgDur,nrow(tmData)),name = 'Avg trade duration',
-                   type='scatter',mode='lines',
-                   line = list(color = 'violet',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'violet',width = 3,dash = 'dash'))
   fig6 = fig6 %>% plotly::layout(title = "Trade Duration",yaxis = list(title = 'Seconds'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   fig = plotly::subplot(fig1,fig2,fig3,fig4,fig5,fig6,nrows = 3) %>%
     plotly::layout(title = "Performance Charts")
   return(fig)
@@ -754,55 +756,55 @@ add_charts_daily = function(cap,tmData) {
   # Value chart
   fig1 = plotly::plot_ly(tmData,x =~count, y = ~value, type = chType,mode = chMode,name = 'Value (USD)')
   fig1 = fig1 %>% plotly::layout(title = "Value",yaxis = list(title = 'USD'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
 
   # Yield chart
   avgYield = mean(tmData$yield)
   fig2 = plotly::plot_ly(tmData,x =~count, y = ~yield, type = chType,mode = chMode,name = 'Yield (USD)')
   # colors=RColorBrewer::brewer.pal(12, "Set3"), color = 'orange'
   fig2 = plotly::add_trace(fig2,y = rep(avgYield,nrow(tmData)),name = 'Avg Yield',
-                   type='scatter',mode='lines',
-                   line = list(color = 'red',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'red',width = 3,dash = 'dash'))
   fig2 = fig2 %>% plotly::layout(title = "Yield",yaxis = list(title = 'USD'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # ROI chart
   avgROI = mean(tmData$roi)
   fig3 = plotly::plot_ly(tmData,x =~count, y = ~roi, type = chType,mode = chMode,name = 'ROI %')
   fig3 = plotly::add_trace(fig3,y = rep(avgROI,nrow(tmData)),name = 'Avg ROI',
-                   type='scatter',mode='lines',
-                   line = list(color = 'pink',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'pink',width = 3,dash = 'dash'))
   fig3 = fig3 %>% plotly::layout(title = "ROI",yaxis = list(title = '%'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Number of Trades chart
   avgTrades = mean(tmData$ntrades)
   fig4 = plotly::plot_ly(tmData,x =~count, y = ~ntrades, type = chType,mode = chMode,name = '#Trades')
   fig4 = plotly::add_trace(fig4,y = rep(avgTrades,nrow(tmData)),name = 'Avg #trades',
-                   type='scatter',mode='lines',
-                   line = list(color = 'blue',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'blue',width = 3,dash = 'dash'))
   fig4 = fig4 %>% plotly::layout(title = "Number of Trades",yaxis = list(title = 'Count'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Contracts per trade chart
   avgContr = mean(tmData$contrtrade)
   fig5 = plotly::plot_ly(tmData,x =~count, y = ~contrtrade, type = chType,mode = chMode, name = 'Contracts/Trade')
   fig5 = plotly::add_trace(fig5,y = rep(avgContr,nrow(tmData)),name = 'Avg contracts/trade',
-                   type='scatter',mode='lines',
-                   line = list(color = 'darkgreen',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'darkgreen',width = 3,dash = 'dash'))
   fig5 = fig5 %>% plotly::layout(title = "Contracts per Trade",yaxis = list(title = 'Contracts/Trade'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   # Trade duration chart
   avgDur = mean(tmData$duration)
   fig6 = plotly::plot_ly(tmData,x =~count, y = ~duration, type = chType,mode = chMode, name = 'Duration (Sec)')
   fig6 = plotly::add_trace(fig6,y = rep(avgDur,nrow(tmData)),name = 'Avg trade duration',
-                   type='scatter',mode='lines',
-                   line = list(color = 'violet',width = 3,dash = 'dash'))
+                           type='scatter',mode='lines',
+                           line = list(color = 'violet',width = 3,dash = 'dash'))
   fig6 = fig6 %>% plotly::layout(title = "Trade Duration",yaxis = list(title = 'Seconds'),
-                         xaxis = list(tickmode = "array",tickvals = tmData$count,
-                                      ticktext = tmData$time,title = 'Time'))
+                                 xaxis = list(tickmode = "array",tickvals = tmData$count,
+                                              ticktext = tmData$time,title = 'Time'))
   fig = plotly::subplot(fig1,fig2,fig3,fig4,fig5,fig6,nrows = 3) %>%
     plotly::layout(title = "Performance Charts")
   return(fig)
