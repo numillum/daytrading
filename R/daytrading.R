@@ -184,8 +184,8 @@ getStatistics = function(TRADES,WD,cap) {
   plTotal = sum(TRADES$pl) # ,na.rm = T
   commisTotal = sum(TRADES$entryCommis) + sum(TRADES$exitCommis)
   yield =  plTotal - commisTotal
-  pcYield = round(yield/cap*100,2)
-  avgRoi = round(mean(TRADES$roi),2)
+  pcYield = yield/cap
+  avgRoi = mean(TRADES$roi)
 
   # == 2 == Number of trades and wins
   winners = sum(TRADES$winner == 1)
@@ -206,8 +206,8 @@ getStatistics = function(TRADES,WD,cap) {
   minDuration = min(TRADES$tradeDur)
 
   # == 5 == Trading days used
-  sDate = getTradeDate(TRADES$entryDate[1])
-  eDate = getTradeDate(TRADES$entryDate[nTrades])
+  sDate = TRADES$day[1]
+  eDate = TRADES$day[nTrades]
   dRange = WD$workDates[which(WD$dates == sDate):which(WD$dates == eDate)]
   trDays = sum(dRange)
   trDaysUsed = length(unique(TRADES$day))
