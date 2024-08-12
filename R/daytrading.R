@@ -208,9 +208,13 @@ getStatistics = function(TRADES,WD,cap) {
   # == 5 == Trading days used
   sDate = TRADES$day[1]
   eDate = TRADES$day[nTrades]
+  print(paste0("sDate= ",sDate," index= ",which(WD$dates == sDate)))
+  print(paste0("eDate= ",eDate," index= ",which(WD$dates == eDate)))
   dRange = WD$workDates[which(WD$dates == sDate):which(WD$dates == eDate)]
   trDays = sum(dRange)
   trDaysUsed = length(unique(TRADES$day))
+  print(paste0("trDays= ",trDays))
+  print(paste0("trDaysUsed= ",trDaysUsed))
   pctrDaysUsed = round(trDaysUsed/trDays*100,2)
 
   stats = c(plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,contracts,contrTrade,maxWin,maxLoss,
