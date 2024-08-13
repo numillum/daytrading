@@ -4,7 +4,17 @@
 \alias{generateAccountCode}
 \title{Generate R Markdown code for an account's option day trading}
 \usage{
-generateAccountCode(tradesFile, TRADES, ac, curDate, WD, cap, isTest = FALSE)
+generateAccountCode(
+  tradesFile,
+  TRADES,
+  ac,
+  curDate,
+  WD,
+  cap,
+  startDate,
+  endDate,
+  isTest = FALSE
+)
 }
 \arguments{
 \item{tradesFile}{is the file name of one day option trades}
@@ -21,6 +31,10 @@ generateAccountCode(tradesFile, TRADES, ac, curDate, WD, cap, isTest = FALSE)
 "dates","dayOfWeek","workDates"}
 
 \item{cap}{is the value of account at the beginning}
+
+\item{startDate}{is the first global trade date}
+
+\item{endDate}{is the last global trade date}
 
 \item{isTest}{prints additional info if TRUE (default is FALSE)}
 }

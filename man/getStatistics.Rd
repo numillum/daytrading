@@ -4,7 +4,7 @@
 \alias{getStatistics}
 \title{Gets trade statistics}
 \usage{
-getStatistics(TRADES, WD, cap)
+getStatistics(TRADES, WD, cap, startDate, endDate, level = "global")
 }
 \arguments{
 \item{TRADES}{The data frame of trades}
@@ -13,6 +13,12 @@ getStatistics(TRADES, WD, cap)
 "dates","dayOfWeek","workDates"}
 
 \item{cap}{The initial capital}
+
+\item{startDate}{is the first global trade date}
+
+\item{endDate}{is the last global trade date}
+
+\item{level}{= 'global', 'year' or 'month'}
 }
 \value{
 The list of statistics that includes:
