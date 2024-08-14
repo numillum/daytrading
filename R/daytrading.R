@@ -279,6 +279,8 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
 #' @param WD is the frame of market working dates with the following fields:
 #'           "dates","dayOfWeek","workDates"
 #' @param cap is the portfolio value (capital)
+#' @param startDate is the first global trade date
+#' @param endDate is the last global trade date
 #' @param level if = 'total' then data is aggregated to monthly otherwise to daily
 #'
 #' @return the time series data frame with the following fields:
@@ -286,7 +288,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
 #'         'contrtrade','roi','duration'
 #' @export
 #'
-getTimeSeries = function (TRADES,WD,cap,level = 'total') {
+getTimeSeries = function (TRADES,WD,cap,startDate,endDate,level = 'total') {
   shortMonth = c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
   # == 1 == Time series
   if (level == 'total') {
@@ -299,7 +301,7 @@ getTimeSeries = function (TRADES,WD,cap,level = 'total') {
       uMonths = sort(unique(YTRADES$month))
       for (mo in uMonths) {
         MTRADES = YTRADES[YTRADES$month == mo,]
-        mStats = getStatistics(MTRADES,WD,value)
+        mStats = getStatistics(MTRADES,WD,value,startDate,endDate,level = 'month')
         mTime = paste0(shortMonth[as.numeric(mo)],'-',substr(y,3,4))
         value = value + mStats[3]
         rec = c(mTime,value,mStats[3],mStats[5:7],mStats[9],mStats[13:14])
@@ -317,7 +319,7 @@ getTimeSeries = function (TRADES,WD,cap,level = 'total') {
     trSeries = NULL
     for (dd in uDates) {
       DTRADES = TRADES[DD == dd,]
-      dStats = getStatistics(DTRADES,WD,value)
+      dStats = getStatistics(DTRADES,WD,value,startDate,endDate,level = 'month')
       dTime = dd
       value = value + dStats[3]
       rec = c(dTime,value,dStats[3],dStats[5:7],dStats[9],dStats[13:14])
@@ -572,19 +574,22 @@ generateOneDayReport = function(TRADES,header = TRUE) {
 #' @param WD is the frame of market working dates with the following fields:
 #'           "dates","dayOfWeek","workDates"
 #' @param cap is the portfolio value (capital)
+#' @param startDate is the first global trade date
+#' @param endDate is the last global trade date
 #'
+#' @export
 #' @return The statistics data frame with the following fields:
-#'   stats = c(plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,
+#'   year,month,day,plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,
 #'   contracts,contrTrade,maxWin,maxLoss,avgCapRisk,avgRoi,
 #'   avgDuration,maxDuration,minDuration,trDays,trDaysUsed,pctrDaysUsed
 #'
-getTradingStatistics = function(TRADES,WD,cap) {
+getTradingStatistics = function(TRADES,WD,cap,startDate,endDate) {
   monthNum2String = c("January","February","March","April","May","June","July","August","September","October","November","December")
   STATS = data.frame(NULL)
   statsHeader = c("year","month","day","pl","commis","yield","pcYield","trades","winners","pcWinners","contracts","maxWin","maxLoss",
                   "avgCapRisk","avgRoi","avgDuration","maxDuration","minDuration","trDays","trDaysUsed","pctrDaysUsed")
   # == 1 == Total statistics
-  total = getStatistics(TRADES,WD,cap)
+  total = getStatistics(TRADES,WD,cap,startDate,endDate,level = 'global')
   rec =  c("Total","","",total)
   STATS = rbind(STATS,rec)
   colnames(STATS) = statsHeader
@@ -599,7 +604,7 @@ getTradingStatistics = function(TRADES,WD,cap) {
       if (nrow(MTRADES) > 0) {
         MTRADES = MTRADES[order(MTRADES$entryDate),]
         mo = monthNum2String[as.numeric(m)]
-        rec = c(y,mo,"",getStatistics(MTRADES,WD,cap))
+        rec = c(y,mo,"",getStatistics(MTRADES,WD,cap,startDate,endDate,level = 'month'))
         STATS = rbind(STATS,rec)
       } #endif
     } #end for m
@@ -618,7 +623,7 @@ getTradingStatistics = function(TRADES,WD,cap) {
         for (d in uDays) {
           DTRADES = MTRADES[MTRADES$day == d,]
           mo = monthNum2String[as.numeric(m)]
-          rec = c(y,mo,d,getStatistics(DTRADES,WD,cap))
+          rec = c(y,mo,d,getStatistics(DTRADES,WD,cap,startDate,endDate,level = 'month'))
           STATS = rbind(STATS,rec)
         } # end for d
       } #endif

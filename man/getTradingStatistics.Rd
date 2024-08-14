@@ -5,7 +5,7 @@
 \title{Calculate statistics for option daily trades on all levels
 total - monthly - daily}
 \usage{
-getTradingStatistics(TRADES, WD, cap)
+getTradingStatistics(TRADES, WD, cap, startDate, endDate)
 }
 \arguments{
 \item{TRADES}{The data frame of trades with the following fields:
@@ -17,10 +17,14 @@ getTradingStatistics(TRADES, WD, cap)
 "dates","dayOfWeek","workDates"}
 
 \item{cap}{is the portfolio value (capital)}
+
+\item{startDate}{is the first global trade date}
+
+\item{endDate}{is the last global trade date}
 }
 \value{
 The statistics data frame with the following fields:
-stats = c(plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,
+year,month,day,plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,
 contracts,contrTrade,maxWin,maxLoss,avgCapRisk,avgRoi,
 avgDuration,maxDuration,minDuration,trDays,trDaysUsed,pctrDaysUsed
 }
