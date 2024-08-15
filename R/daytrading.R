@@ -226,6 +226,11 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
   year = TRADES$year[1]
   month = TRADES$month[1]
   if (month < 10) { month = paste0('0',month)} else {month = as.character(month)}
+  print(paste0("sDate= ",sDate))
+  print(paste0("eDate= ",eDate))
+  print(paste0("year= ",year))
+  print(paste0("month= ",month))
+
   if (level == 'global') {
     firstD = startDate; lastD = endDate
     if (endDate < curDate) { lastD = curDate}
@@ -255,8 +260,8 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
     } #endif
   } #endif
 
-  print(paste0("sDate= ",firstD," index= ",which(WD$dates == firstD)))
-  print(paste0("eDate= ",lastD," index= ",which(WD$dates == lastD)))
+  print(paste0("firstD= ",firstD," index= ",which(WD$dates == firstD)))
+  print(paste0("lastD= ",lastD," index= ",which(WD$dates == lastD)))
   dRange = WD$workDates[which(WD$dates == firstD):which(WD$dates == lastD)]
   trDays = sum(dRange)
   trDaysUsed = length(unique(TRADES$day))
