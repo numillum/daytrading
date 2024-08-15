@@ -879,9 +879,11 @@ add_charts_daily = function(cap,tmData) {
 #' @return text of R Markdown code
 add_charts = function(ac,cap) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
-              "uAcc = unique(TRADES$accountId)",
               paste0("TRADESAC = TRADES[TRADES$accountId == ",ac,",]"),
-              paste0("acTimeSeries = getTimeSeries(TRADESAC,WD,",cap,",level = 'total')"),
+              paste0("TRADESAC = TRADESAC[order(TRADESAC$entryDate),]"),
+              paste0("startDate = TRADESAC$day[1]"),
+              paste0("endDate = TRADESAC$day[nrow(TRADESAC)]"),
+              paste0("acTimeSeries = getTimeSeries(TRADESAC,WD,",cap,",startDate,endDate,level = 'total')"),
               paste0("add_charts_monthly(",cap,",acTimeSeries)"),
               "```",sep="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -915,7 +917,7 @@ add_table = function() {
 add_charts_year = function(y,value) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
               paste0("YTRADES = TRADESAC[TRADESAC$year == ",y,",]"),
-              paste0("yTimeSeries = getTimeSeries(YTRADES,WD,",value,",level = 'total')"),
+              paste0("yTimeSeries = getTimeSeries(YTRADES,WD,",value,",startDate,endDate,level = 'total')"),
               paste0("add_charts_monthly(",value,",yTimeSeries)"),
               "```",sep ="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -951,7 +953,7 @@ add_charts_month = function(m,value) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
               paste0("MTRADES = YTRADES[YTRADES$month == ",m,",]"),
               "MTRADES = MTRADES[order(MTRADES$entryDate),]",
-              paste0("dTimeSeries = getTimeSeries(MTRADES,WD,",value,",level = 'daily')"),
+              paste0("dTimeSeries = getTimeSeries(MTRADES,WD,",value,",startDate,endDate,level = 'daily')"),
               paste0("add_charts_monthly(",value,",dTimeSeries)"),
               "```",sep ="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -1047,7 +1049,7 @@ generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,end
     print(acStats)
     acTicStats = getTickerStatistics(TRADES)
     acTicStats = acTicStats[order(-acTicStats$nTrades),]
-    acTimeSeries = getTimeSeries(TRADES,WD,cap,level = 'total')
+    acTimeSeries = getTimeSeries(TRADES,WD,cap,startDate,endDate,level = 'total')
     print(acTicStats)
     print(acTimeSeries)
   } #endif
@@ -1082,7 +1084,7 @@ generateYearCode = function(TRADES,y,WD,value,startDate,endDate,isTest = FALSE) 
     print(paste('Yearly statistics for year',y))
     print(yStats)
     yTicStats = getTickerStatistics(TRADES)
-    yTimeSeries = getTimeSeries(TRADES,WD,value,level = 'total')
+    yTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,level = 'total')
     print(yTicStats)
     print(yTimeSeries)
   } #endif
@@ -1120,7 +1122,7 @@ generateMonthCode = function(TRADES,m,WD,value,startDate,endDate,isTest = FALSE)
     print(paste('Monthly statistics for month',m))
     print(dStats)
     dTicStats = getTickerStatistics(TRADES)
-    dTimeSeries = getTimeSeries(TRADES,WD,value,level = 'daily')
+    dTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,level = 'daily')
     print(dTicStats)
     print(dTimeSeries)
   } #endif
