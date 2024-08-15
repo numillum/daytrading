@@ -190,7 +190,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
       ss = strsplit(dd,'-',fixed = T)[[1]]
       return(paste0(ss[1],'-',ss[2]))
     } # end getYearMonth
-    ym = sapply(as.character(WD$dates),getYearMonth)
+    ym = as.character(sapply(as.character(WD$dates),getYearMonth))
     k = max(which(ym == paste0(year,'-',month)))
     return(WD$dates[k])
   } #end lastDayOfMonth
