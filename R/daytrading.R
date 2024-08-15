@@ -225,7 +225,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
   eDate = TRADES$day[nTrades]
   year = TRADES$year[1]
   month = TRADES$month[1]
-  if (month < 10) { month = paste0('0',month)} else {month = as.caracter(month)}
+  if (month < 10) { month = paste0('0',month)} else {month = as.character(month)}
   if (level == 'global') {
     firstD = startDate; lastD = endDate
     if (endDate < curDate) { lastD = curDate}
