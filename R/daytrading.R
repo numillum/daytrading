@@ -225,12 +225,12 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
   eDate = TRADES$day[nTrades]
   year = TRADES$year[1]
   month = TRADES$month[1]
+  if (month < 10) { month = paste0('0',month)}
   if (level == 'global') {
     firstD = startDate; lastD = endDate
     if (endDate < curDate) { lastD = curDate}
   } #endif
   if (level == 'year') {
-    year = TRADES$year[1]
     if (sDate == startDate) {
       firstD = startDate
     } else {
@@ -246,6 +246,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
     if (sDate == startDate) {
       firstD = startDate
     } else {
+      if (month < 10) { month = paste0('0',month)}
       firstD = paste0(year,"-",month,"-01") # the first day of month
     } #endif
     if (eDate == endDate) {
