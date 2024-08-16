@@ -365,7 +365,7 @@ countCallsPuts = function(TRADES,symb) {
   symOpt = TRADES[TRADES$underSymbol == symb,c('symbol','winner','pl','entryCommis','exitCommis')]
   optList = NULL
   for (ss in symOpt$symbol) {
-    if ('_' %in% ss) { # TDAm's Option symbol: META_101323C325
+    if (grepl('_',ss)) { # TDAm's Option symbol: META_101323C325
       optList = c(optList,substr(strsplit(ss,'_',fixed = T)[[1]][2],7,7))
     } else { # Schwab's option symbol: QQQ   240604C00452000
       ss = gsub("\\s+"," ",ss)
