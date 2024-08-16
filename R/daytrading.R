@@ -190,7 +190,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
       ss = strsplit(dd,'-',fixed = T)[[1]]
       return(paste0(ss[1],'-',ss[2]))
     } # end getYearMonth
-    ym = sapply(as.character(WD$dates),getYearMonth)
+    ym = sapply(WD$dates,getYearMonth)
     k = max(which(ym == paste0(year,'-',month)))
     return(WD$dates[k])
   } #end lastDayOfMonth
@@ -225,7 +225,11 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
   eDate = TRADES$day[nTrades]
   year = TRADES$year[1]
   month = TRADES$month[1]
-  # if (month < 10) { month = paste0('0',month)} else {month = as.character(month)}
+  if (month < 10) {
+    month = paste0('0',month)
+  } else {
+    month = as.character(month)
+  } #endif
   print(paste0("sDate= ",sDate))
   print(paste0("eDate= ",eDate))
   print(paste0("year= ",year))
@@ -1019,6 +1023,7 @@ getTradingDates = function() {
     workDates[dates == dd] = 0
   } # end for dd
   WD = data.frame(dates,dayOfWeek,workDates)
+  WD$dates = as.character(WD$dates)
   return(WD)
 } # end getTradingDates
 
