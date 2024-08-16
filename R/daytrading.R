@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 # Programmer : Valery Petrushin
 # Creation Date: July 23, 2024
-# Modification Date: July 30, 2024
+# Modification Date: August 16, 2024
 # =============================================================================
 
 ### ======================    F U N C T I O N S   =============================
@@ -230,10 +230,10 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
   } else {
     month = as.character(month)
   } #endif
-  print(paste0("sDate= ",sDate))
-  print(paste0("eDate= ",eDate))
-  print(paste0("year= ",year))
-  print(paste0("month= ",month))
+  # print(paste0("sDate= ",sDate))
+  # print(paste0("eDate= ",eDate))
+  # print(paste0("year= ",year))
+  # print(paste0("month= ",month))
 
   if (level == 'global') {
     firstD = startDate; lastD = endDate
@@ -264,13 +264,13 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
     } #endif
   } #endif
 
-  print(paste0("firstD= ",firstD," index= ",which(WD$dates == firstD)))
-  print(paste0("lastD= ",lastD," index= ",which(WD$dates == lastD)))
+  # print(paste0("firstD= ",firstD," index= ",which(WD$dates == firstD)))
+  # print(paste0("lastD= ",lastD," index= ",which(WD$dates == lastD)))
   dRange = WD$workDates[which(WD$dates == firstD):which(WD$dates == lastD)]
   trDays = sum(dRange)
   trDaysUsed = length(unique(TRADES$day))
-  print(paste0("trDays= ",trDays))
-  print(paste0("trDaysUsed= ",trDaysUsed))
+  # print(paste0("trDays= ",trDays))
+  # print(paste0("trDaysUsed= ",trDaysUsed))
   pctrDaysUsed = round(trDaysUsed/trDays*100,2)
 
   stats = c(plTotal,commisTotal,yield,pcYield,nTrades,winners,pcWinners,contracts,contrTrade,maxWin,maxLoss,
@@ -689,7 +689,7 @@ add_prefix3 = function(cap,tradesFile) {
               "curDate = format(Sys.Date(),format = \"%Y-%m-%d\")  # date in a format yyyy-mm-dd",
               "WD = getTradingDates()",
               paste0("tradesFile = \"",tradesFile,"\""),
-              "TRADES = read.csv(tradesFile,header = T)",
+              "TRADESAC = read.csv(tradesFile,header = T)",
               "```",sep = "\n")
   return(txt)
 } # end add_prefix3
@@ -888,7 +888,6 @@ add_charts_daily = function(cap,tmData) {
 #' @return text of R Markdown code
 add_charts = function(ac,cap) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
-              paste0("TRADESAC = TRADES[TRADES$accountId == ",ac,",]"),
               paste0("TRADESAC = TRADESAC[order(TRADESAC$entryDate),]"),
               paste0("startDate = TRADESAC$day[1]"),
               paste0("endDate = TRADESAC$day[nrow(TRADESAC)]"),
