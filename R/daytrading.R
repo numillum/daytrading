@@ -131,14 +131,17 @@ getParams = function() {
 
 #' Analyze and select account numbers
 #'
-#' @param accNumbers a set of numbers from Schwab account
-#' @param parNumbers a set of numbers from parameter file
-#'
+#' @param accNums a data frame of Schwab account(s)
+#'        with the fields 'accountNumber' and 'hashValue'
+#' @param PARS a data frame from parameter file
+#'.       with the fields 'account.number','account.initValue' and 'account.startDate'
 #' @return a data frame with the following fields
 #'         'accountNumber','initValue','startDate','hashValue'
 #' @export
-select_accountNumbers = function(accNumbers,parNumbers) {
+select_accountNumbers = function(accNums,PARS) {
   # == 1 == Analyze account numbers
+  accNumbers = accNums$accountNumber
+  parNumbers = unique(PARS$account.number)
   # Check if the numbers from parameter file is a subset of Schwab account numbers
   if (!setequal(intersect(parNumbers,accNumbers), parNumbers)) {
     diff = setdiff(parNumbers,accNumbers)
@@ -240,10 +243,11 @@ getTickerStatistics = function(TRADES){
 #' @param TRADES The data frame of trades
 #' @param WD is the frame of market working dates with the following fields:
 #'           "dates","dayOfWeek","workDates"
+#' @param cap The initial capital
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is the current date
 #' @param level  = 'global', 'year' or 'month'
-#' @param cap The initial capital
 #'
 #' @return The list of statistics that includes:
 #' total P or L,total commision,yield,yield percentage,number of trades,
@@ -251,7 +255,7 @@ getTickerStatistics = function(TRADES){
 #' average capital at risk,average ROI,average trade duration,
 #' longest and shortest trade durations, number of trading days,
 #' number of trading days used, percentage of trading days used
-getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
+getStatistics = function(TRADES,WD,cap,startDate,endDate,curDate,level = 'global') {
 
   lastDayOfMonth = function(WD,year,month) {
     getYearMonth = function (dd) {
@@ -365,7 +369,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,level = 'global') {
 #'         'contrtrade','roi','duration'
 #' @export
 #'
-getTimeSeries = function (TRADES,WD,cap,startDate,endDate,level = 'total') {
+getTimeSeries = function (TRADES,WD,cap,startDate,endDate,curDate,level = 'total') {
   shortMonth = c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
   # == 1 == Time series
   if (level == 'total') {
@@ -378,7 +382,7 @@ getTimeSeries = function (TRADES,WD,cap,startDate,endDate,level = 'total') {
       uMonths = sort(unique(YTRADES$month))
       for (mo in uMonths) {
         MTRADES = YTRADES[YTRADES$month == mo,]
-        mStats = getStatistics(MTRADES,WD,value,startDate,endDate,level = 'month')
+        mStats = getStatistics(MTRADES,WD,value,startDate,endDate,curDate,level = 'month')
         mTime = paste0(shortMonth[as.numeric(mo)],'-',substr(y,3,4))
         value = value + mStats[3]
         rec = c(mTime,value,mStats[3],mStats[5:7],mStats[9],mStats[13:14])
@@ -396,7 +400,7 @@ getTimeSeries = function (TRADES,WD,cap,startDate,endDate,level = 'total') {
     trSeries = NULL
     for (dd in uDates) {
       DTRADES = TRADES[DD == dd,]
-      dStats = getStatistics(DTRADES,WD,value,startDate,endDate,level = 'month')
+      dStats = getStatistics(DTRADES,WD,value,startDate,endDate,curDate,level = 'month')
       dTime = dd
       value = value + dStats[3]
       rec = c(dTime,value,dStats[3],dStats[5:7],dStats[9],dStats[13:14])
@@ -653,6 +657,7 @@ generateOneDayReport = function(TRADES,header = TRUE) {
 #' @param cap is the portfolio value (capital)
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is the current date
 #'
 #' @export
 #' @return The statistics data frame with the following fields:
@@ -660,13 +665,13 @@ generateOneDayReport = function(TRADES,header = TRUE) {
 #'   contracts,contrTrade,maxWin,maxLoss,avgCapRisk,avgRoi,
 #'   avgDuration,maxDuration,minDuration,trDays,trDaysUsed,pctrDaysUsed
 #'
-getTradingStatistics = function(TRADES,WD,cap,startDate,endDate) {
+getTradingStatistics = function(TRADES,WD,cap,startDate,endDate,curDate) {
   monthNum2String = c("January","February","March","April","May","June","July","August","September","October","November","December")
   STATS = data.frame(NULL)
   statsHeader = c("year","month","day","pl","commis","yield","pcYield","trades","winners","pcWinners","contracts","maxWin","maxLoss",
                   "avgCapRisk","avgRoi","avgDuration","maxDuration","minDuration","trDays","trDaysUsed","pctrDaysUsed")
   # == 1 == Total statistics
-  total = getStatistics(TRADES,WD,cap,startDate,endDate,level = 'global')
+  total = getStatistics(TRADES,WD,cap,startDate,endDate,curDate,level = 'global')
   rec =  c("Total","","",total)
   STATS = rbind(STATS,rec)
   colnames(STATS) = statsHeader
@@ -681,7 +686,7 @@ getTradingStatistics = function(TRADES,WD,cap,startDate,endDate) {
       if (nrow(MTRADES) > 0) {
         MTRADES = MTRADES[order(MTRADES$entryDate),]
         mo = monthNum2String[as.numeric(m)]
-        rec = c(y,mo,"",getStatistics(MTRADES,WD,cap,startDate,endDate,level = 'month'))
+        rec = c(y,mo,"",getStatistics(MTRADES,WD,cap,startDate,endDate,curDate,level = 'month'))
         STATS = rbind(STATS,rec)
       } #endif
     } #end for m
@@ -700,7 +705,7 @@ getTradingStatistics = function(TRADES,WD,cap,startDate,endDate) {
         for (d in uDays) {
           DTRADES = MTRADES[MTRADES$day == d,]
           mo = monthNum2String[as.numeric(m)]
-          rec = c(y,mo,d,getStatistics(DTRADES,WD,cap,startDate,endDate,level = 'month'))
+          rec = c(y,mo,d,getStatistics(DTRADES,WD,cap,startDate,endDate,curDate,level = 'month'))
           STATS = rbind(STATS,rec)
         } # end for d
       } #endif
@@ -959,7 +964,7 @@ add_charts = function(ac,cap) {
               paste0("TRADESAC = TRADESAC[order(TRADESAC$entryDate),]"),
               paste0("startDate = TRADESAC$day[1]"),
               paste0("endDate = TRADESAC$day[nrow(TRADESAC)]"),
-              paste0("acTimeSeries = getTimeSeries(TRADESAC,WD,",cap,",startDate,endDate,level = 'total')"),
+              paste0("acTimeSeries = getTimeSeries(TRADESAC,WD,",cap,",startDate,endDate,curDate,level = 'total')"),
               paste0("add_charts_monthly(",cap,",acTimeSeries)"),
               "```",sep="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -993,7 +998,7 @@ add_table = function() {
 add_charts_year = function(y,value) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
               paste0("YTRADES = TRADESAC[TRADESAC$year == ",y,",]"),
-              paste0("yTimeSeries = getTimeSeries(YTRADES,WD,",value,",startDate,endDate,level = 'total')"),
+              paste0("yTimeSeries = getTimeSeries(YTRADES,WD,",value,",startDate,endDate,curDate,level = 'total')"),
               paste0("add_charts_monthly(",value,",yTimeSeries)"),
               "```",sep ="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -1029,7 +1034,7 @@ add_charts_month = function(m,value) {
   txt = paste("","```{r fig.width = 12,fig.height=10,echo = FALSE}",
               paste0("MTRADES = YTRADES[YTRADES$month == ",m,",]"),
               "MTRADES = MTRADES[order(MTRADES$entryDate),]",
-              paste0("dTimeSeries = getTimeSeries(MTRADES,WD,",value,",startDate,endDate,level = 'daily')"),
+              paste0("dTimeSeries = getTimeSeries(MTRADES,WD,",value,",startDate,endDate,curDate,level = 'daily')"),
               paste0("add_charts_monthly(",value,",dTimeSeries)"),
               "```",sep ="\n")
   txt = paste(txt,"<br>","<br>",sep="\n")
@@ -1107,6 +1112,7 @@ getTradingDates = function() {
 #' @param cap is the value of account at the beginning
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is thr current date
 #' @param isTest prints additional info if TRUE (default is FALSE)
 #'
 #' @return a string of R Markdown code for the account's trades
@@ -1120,13 +1126,13 @@ generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,end
   txt = paste(txt,add_prefix1(),sep = "\n")
   txt = paste(txt,add_prefix2(),sep = "\n")
   txt = paste(txt,add_prefix3(cap,tradesFile),sep = "\n")
-  acStats = getStatistics(TRADES,WD,cap,startDate,endDate,level = 'global')
+  acStats = getStatistics(TRADES,WD,cap,startDate,endDate,curDate,level = 'global')
   if (isTest) {
     print(paste('Total statistics for account',ac))
     print(acStats)
     acTicStats = getTickerStatistics(TRADES)
     acTicStats = acTicStats[order(-acTicStats$nTrades),]
-    acTimeSeries = getTimeSeries(TRADES,WD,cap,startDate,endDate,level = 'total')
+    acTimeSeries = getTimeSeries(TRADES,WD,cap,startDate,endDate,curDate,level = 'total')
     print(acTicStats)
     print(acTimeSeries)
   } #endif
@@ -1150,18 +1156,19 @@ generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,end
 #' @param value is the value of portfolio at the beginning of the year
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is thr current date
 #' @param isTest prints additional info if TRUE (default is FALSE)
 #'
 #' @return a string of R Markdown code for the yearly trades
 #' @export
 #'
-generateYearCode = function(TRADES,y,WD,value,startDate,endDate,isTest = FALSE) {
-  yStats = getStatistics(TRADES,WD,value,startDate,endDate,level = 'year')
+generateYearCode = function(TRADES,y,WD,value,startDate,endDate,curDate,isTest = FALSE) {
+  yStats = getStatistics(TRADES,WD,value,startDate,endDate,curDate,level = 'year')
   if (isTest) {
     print(paste('Yearly statistics for year',y))
     print(yStats)
     yTicStats = getTickerStatistics(TRADES)
-    yTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,level = 'total')
+    yTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,curDate,level = 'total')
     print(yTicStats)
     print(yTimeSeries)
   } #endif
@@ -1184,22 +1191,23 @@ generateYearCode = function(TRADES,y,WD,value,startDate,endDate,isTest = FALSE) 
 #' @param value is the value of portfolio at the beginning of the month
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is thr current date
 #' @param isTest prints additional info if TRUE (default is FALSE)
 #'
 #' @return a structure with two fields: $txt is R Markdown code and $value is portfolio value at the end of month
 #' @export
 #'
-generateMonthCode = function(TRADES,m,WD,value,startDate,endDate,isTest = FALSE) {
+generateMonthCode = function(TRADES,m,WD,value,startDate,endDate,curDate,isTest = FALSE) {
   res = NULL
   monthName = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   TRADES = TRADES[order(TRADES$entryDate),]
-  dStats = getStatistics(TRADES,WD,value,startDate,endDate,level = 'month')
+  dStats = getStatistics(TRADES,WD,value,startDate,endDate,curDate,level = 'month')
   m = as.integer(m)
   if (isTest) {
     print(paste('Monthly statistics for month',m))
     print(dStats)
     dTicStats = getTickerStatistics(TRADES)
-    dTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,level = 'daily')
+    dTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,curDate,level = 'daily')
     print(dTicStats)
     print(dTimeSeries)
   } #endif
