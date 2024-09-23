@@ -129,6 +129,74 @@ getParams = function() {
   return(PARS)
 } # end getParams
 
+#' Analyze and select account numbers
+#'
+#' @param accNumbers a set of numbers from Schwab account
+#' @param parNumbers a set of numbers from parameter file
+#'
+#' @return a data frame with the following fields
+#'         'accountNumber','initValue','startDate','hashValue'
+#' @export
+select_accountNumbers = function(accNumbers,parNumbers) {
+  # == 1 == Analyze account numbers
+  # Check if the numbers from parameter file is a subset of Schwab account numbers
+  if (!setequal(intersect(parNumbers,accNumbers), parNumbers)) {
+    diff = setdiff(parNumbers,accNumbers)
+    print(paste0("No data available for account(s) ",diff))
+    parNumbers = intersect(parNumbers,accNumbers)
+  } #endif
+
+  # == 2 == Select account numbers and add hash values
+  isFirst = TRUE
+  for (num in parNumbers){
+    hashValue = accNums[accNums$accountNumber == num,"hashValue"]
+    ROW = unlist(c(PARS[PARS$account.number == num,],hashValue))
+    if (isFirst) {
+      SEL = ROW
+      isFirst = FALSE
+    } else {
+      SEL = rbind(SEL,ROW)
+    }#endif
+  } #end for num
+  SEL = as.data.frame(SEL)
+  colnames(SEL) = c('accountNumber','initValue','startDate','hashValue')
+  return(SEL)
+} # end select_accountNumbers
+
+
+#' Gets trade transaction for the specified account
+#'
+#' @param tokens are access and refresh tokens for account
+#' @param accHash is a hash value for specific account number
+#' @param startDate is the start date for transactions
+#' @param endDate is the end date for transactions
+#' @param assetType is the assete type ('OPTION' (default),'FUTURE' or 'EQUITY')
+#'
+#' @return a data frame with transactions
+#' @export
+getTransactions = function(tokens,accHash,startDate,endDate,assetType = 'OPTION') {
+
+  transRaw = charlesschwabapi::get_transactions(tokens,accHash,startDate,endDate,types = 'TRADE')
+  isFirst = TRUE
+  TRANS = NULL
+  for (k in 1:nrow(transRaw)) {
+    curRec = transRaw[k,]
+    trandf = as.data.frame(curRec$transferItems)
+    if (trandf$instrument.assetType == assetType) {
+      curRow =cbind(curRec[1:10],trandf)
+      if (isFirst) {
+        TRANS = curRow
+        isFirst = FALSE
+      } else {
+        TRANS = dplyr::bind_rows(TRANS,curRow)
+      } #endif
+    } #endif
+  } #end for k
+  TRANS = TRANS[order(TRANS$time),]
+  return(TRANS)
+} #end getTransactions
+
+
 #' Get statistics for all option trades for underlying symbol
 #'
 #' @param TRADES The data frame of trades with the following fields:
