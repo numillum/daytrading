@@ -4,7 +4,7 @@
 \alias{getTimeSeries}
 \title{Create trade time series data frame on monthly or daily level}
 \usage{
-getTimeSeries(TRADES, WD, cap, startDate, endDate, level = "total")
+getTimeSeries(TRADES, WD, cap, startDate, endDate, curDate, level = "total")
 }
 \arguments{
 \item{TRADES}{The data frame of trades with the following fields:
@@ -20,6 +20,8 @@ getTimeSeries(TRADES, WD, cap, startDate, endDate, level = "total")
 \item{startDate}{is the first global trade date}
 
 \item{endDate}{is the last global trade date}
+
+\item{curDate}{is the current date}
 
 \item{level}{if = 'total' then data is aggregated to monthly otherwise to daily}
 }

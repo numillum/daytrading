@@ -5,7 +5,7 @@
 \title{Calculate statistics for option daily trades on all levels
 total - monthly - daily}
 \usage{
-getTradingStatistics(TRADES, WD, cap, startDate, endDate)
+getTradingStatistics(TRADES, WD, cap, startDate, endDate, curDate)
 }
 \arguments{
 \item{TRADES}{The data frame of trades with the following fields:
@@ -21,6 +21,8 @@ getTradingStatistics(TRADES, WD, cap, startDate, endDate)
 \item{startDate}{is the first global trade date}
 
 \item{endDate}{is the last global trade date}
+
+\item{curDate}{is the current date}
 }
 \value{
 The statistics data frame with the following fields:

@@ -4,7 +4,16 @@
 \alias{generateMonthCode}
 \title{Generate R Markdown code for monthly option day trading}
 \usage{
-generateMonthCode(TRADES, m, WD, value, startDate, endDate, isTest = FALSE)
+generateMonthCode(
+  TRADES,
+  m,
+  WD,
+  value,
+  startDate,
+  endDate,
+  curDate,
+  isTest = FALSE
+)
 }
 \arguments{
 \item{TRADES}{is the frame of trade data with the following fields:
@@ -21,6 +30,8 @@ generateMonthCode(TRADES, m, WD, value, startDate, endDate, isTest = FALSE)
 \item{startDate}{is the first global trade date}
 
 \item{endDate}{is the last global trade date}
+
+\item{curDate}{is thr current date}
 
 \item{isTest}{prints additional info if TRUE (default is FALSE)}
 }

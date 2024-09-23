@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 # Programmer : Valery Petrushin
 # Creation Date: July 23, 2024
-# Modification Date: August 16, 2024
+# Modification Date: September 23, 2024
 # =============================================================================
 
 ### ======================    F U N C T I O N S   =============================
@@ -176,6 +176,8 @@ select_accountNumbers = function(accNums,PARS) {
 #' @param assetType is the assete type ('OPTION' (default),'FUTURE' or 'EQUITY')
 #'
 #' @return a data frame with transactions
+#' @importFrom charlesschwabapi get_transactions
+#' @importFrom dplyr bind_rows
 #' @export
 getTransactions = function(tokens,accHash,startDate,endDate,assetType = 'OPTION') {
 
@@ -362,6 +364,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,curDate,level = 'global
 #' @param cap is the portfolio value (capital)
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
+#' @param curDate is the current date
 #' @param level if = 'total' then data is aggregated to monthly otherwise to daily
 #'
 #' @return the time series data frame with the following fields:
