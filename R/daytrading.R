@@ -138,6 +138,7 @@ getParams = function() {
 #' @return a data frame with the following fields
 #'         'accountNumber','initValue','startDate','hashValue'
 #' @export
+#'
 select_accountNumbers = function(accNums,PARS) {
   # == 1 == Analyze account numbers
   accNumbers = accNums$accountNumber
@@ -504,7 +505,7 @@ processOneDayTrades = function(TRANS) {
   TRANSOP$trTime = TrTime
   TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
   for (k in 1:nrow(TRANSOP)) {
-    if (TRANSOP$positionEffect[k] == '') {
+    if (is.na(TRANSOP$positionEffect[k]) | (TRANSOP$positionEffect[k] == '')) {
       TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
     } #endif
   } #end for k

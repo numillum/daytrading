@@ -6,3 +6,6 @@ install_github("https://github.com/numillum/daytrading.git");
 
 git tag -a v0.0.1.0 -m "my first version of daytrading package"
 git push -u origin v0.0.1.0
+
+library(devtools)
+install_github("numillum/daytrading")
