@@ -1116,7 +1116,6 @@ getTradingDates = function() {
 #' @param cap is the value of account at the beginning
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
-#' @param curDate is thr current date
 #' @param isTest prints additional info if TRUE (default is FALSE)
 #'
 #' @return a string of R Markdown code for the account's trades

@@ -25,7 +25,7 @@ generateAccountCode(
 
 \item{ac}{is the account number}
 
-\item{curDate}{is thr current date}
+\item{curDate}{is the current date (format yyyy-mm-dd)}
 
 \item{WD}{is the frame of market working dates with the following fields:
 "dates","dayOfWeek","workDates"}
