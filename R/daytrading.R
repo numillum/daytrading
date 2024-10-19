@@ -579,17 +579,19 @@ processOneDayTrades = function(TRANS) {
     } #endif
   } #end for d
   TRADES = data.frame(TRADES)
-  colnames(TRADES) = c("accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount","entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day")
-  TRADES$entryPrice = as.numeric(TRADES$entryPrice)
-  TRADES$exitPrice = as.numeric(TRADES$exitPrice)
-  TRADES$amount = as.numeric(TRADES$amount)
-  TRADES$entryCommis = as.numeric(TRADES$entryCommis)
-  TRADES$exitCommis  = as.numeric(TRADES$exitCommis)
-  TRADES$pl  = as.numeric(TRADES$pl)
-  TRADES$winner  = as.numeric(TRADES$winner)
-  TRADES$capAtRisk  = as.numeric(TRADES$capAtRisk)
-  TRADES$roi  = as.numeric(TRADES$roi)
-  TRADES$tradeDur  = as.numeric(TRADES$tradeDur)
+  if (nrow(TRADES) > 0) {
+    colnames(TRADES) = c("accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount","entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day")
+    TRADES$entryPrice = as.numeric(TRADES$entryPrice)
+    TRADES$exitPrice = as.numeric(TRADES$exitPrice)
+    TRADES$amount = as.numeric(TRADES$amount)
+    TRADES$entryCommis = as.numeric(TRADES$entryCommis)
+    TRADES$exitCommis  = as.numeric(TRADES$exitCommis)
+    TRADES$pl  = as.numeric(TRADES$pl)
+    TRADES$winner  = as.numeric(TRADES$winner)
+    TRADES$capAtRisk  = as.numeric(TRADES$capAtRisk)
+    TRADES$roi  = as.numeric(TRADES$roi)
+    TRADES$tradeDur  = as.numeric(TRADES$tradeDur)
+  }
   return(TRADES)
 } # end processOneDayTrades
 
