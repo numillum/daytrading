@@ -591,7 +591,7 @@ processOneDayTrades = function(TRANS) {
     TRADES$capAtRisk  = as.numeric(TRADES$capAtRisk)
     TRADES$roi  = as.numeric(TRADES$roi)
     TRADES$tradeDur  = as.numeric(TRADES$tradeDur)
-  }
+  } #endif
   return(TRADES)
 } # end processOneDayTrades
 
@@ -1077,7 +1077,7 @@ add_table_month = function() {
 #' @examples
 #'       WD = getTradingDates()
 getTradingDates = function() {
-  # === Working dates 2018 - 2024
+  # === Working dates 2018 - 2025
   marketHolidays = c('2018-01-01','2018-01-15','2018-02-19','2018-03-30','2018-05-28',
                      '2018-07-04','2018-09-03','2018-11-22','2018-12-25',
                      '2019-01-01','2019-01-21','2019-02-18','2019-04-19','2019-05-27',
@@ -1091,8 +1091,11 @@ getTradingDates = function() {
                      '2023-01-02','2023-01-16','2023-02-20','2023-04-07','2023-05-29',
                      '2023-06-19','2023-07-04','2023-09-04','2023-11-23','2023-12-25',
                      '2024-01-01','2024-01-15','2024-02-19','2024-03-29','2024-05-27',
-                     '2024-06-19','2024-07-04','2024-09-02','2024-11-28','2024-12-25')
-  dates = seq(lubridate::ymd('2018-01-01'),lubridate::ymd('2024-12-31'), by = 'day')
+                     '2024-06-19','2024-07-04','2024-09-02','2024-11-28','2024-12-25',
+                     '2025-01-01','2025-01-09','2025-01-20','2025-02-17','2025-04-18','2025-05-26',
+                     '2025-06-19','2025-07-04','2025-09-01','2025-11-27','2025-12-25'
+                     )
+  dates = seq(lubridate::ymd('2018-01-01'),lubridate::ymd('2025-12-31'), by = 'day')
   dayOfWeek = weekdays(dates)
   workDates = rep(1,length(dates))
   workDates[dayOfWeek == "Saturday"] = 0
