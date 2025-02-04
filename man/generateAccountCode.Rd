@@ -13,7 +13,8 @@ generateAccountCode(
   cap,
   startDate,
   endDate,
-  isTest = FALSE
+  isTest = FALSE,
+  title = "Option Day Trading Report"
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ generateAccountCode(
 \item{endDate}{is the last global trade date}
 
 \item{isTest}{prints additional info if TRUE (default is FALSE)}
+
+\item{title}{is the title of day trading report (default is "Option Day Trading Report")}
 }
 \value{
 a string of R Markdown code for the account's trades

@@ -494,11 +494,11 @@ countCallsPuts = function(TRADES,symb) {
 #'         "winner","capAtRisk","roi","tradeDur","year","month","day"
 #' @export
 #'
-processOneDayTrades = function(TRANS) {
+processOneDayTrades = function(TRANS,assetType = 'OPTION') {
 
   TRADES = data.frame(NULL)
   isFirst = TRUE
-  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == 'OPTION'),]
+  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == assetType),]
   TrDay = unlist(sapply(TRANSOP$time,splitTransDate,simplify = F))
   TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
@@ -1126,8 +1126,8 @@ getTradingDates = function() {
 #' @return a string of R Markdown code for the account's trades
 #' @export
 #'
-generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,endDate,isTest = FALSE) {
-  title = "Option Day Trading Report"
+generateAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,endDate,
+                               isTest = FALSE,title = "Option Day Trading Report") {
   author = paste0("Account: ",ac)
   date = paste0("Date: ",curDate)
   txt = add_header(title,author,date)
