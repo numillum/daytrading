@@ -122,7 +122,7 @@ getTradeDateMonth = function(dd) {
 #' @export
 #'
 getParams = function(params = "params.yml") {
-  params = yaml::read_yaml("params.yml")
+  params = yaml::read_yaml(params)
   PARS = NULL
   for (k in 1:length(params)){
     PARS = rbind(PARS,as.data.frame(params[[k]]))
