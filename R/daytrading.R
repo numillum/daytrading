@@ -152,18 +152,13 @@ select_accountNumbers = function(accNums,PARS) {
   } #endif
 
   # == 2 == Select account numbers and add hash values
-  isFirst = TRUE
+  SEL = data.frame(matrix(ncol = 4, nrow = 0))
+  colnames(SEL) = c('accountNumber','initValue','startDate','hashValue')
   for (num in parNumbers){
     hashValue = accNums[accNums$accountNumber == num,"hashValue"]
     ROW = unlist(c(PARS[PARS$account.number == num,],hashValue))
-    if (isFirst) {
-      SEL = ROW
-      isFirst = FALSE
-    } else {
-      SEL = rbind(SEL,ROW)
-    }#endif
+    SEL = rbind(SEL,ROW)
   } #end for num
-  SEL = as.data.frame(SEL)
   colnames(SEL) = c('accountNumber','initValue','startDate','hashValue')
   return(SEL)
 } # end select_accountNumbers
