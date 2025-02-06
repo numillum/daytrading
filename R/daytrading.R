@@ -101,9 +101,10 @@ getTradeDateMonth = function(dd) {
   return(dMonth)
 } # end getTradeDateMonth
 
-#' Read the params.yml file that specifies parameters
+#' Read the parameters' file that specifies parameters
 #'
-#'The YAML file params.yml may have parameters for one or more accounts.
+#' @param params is the name of parameters' file (default "params.yml")
+#'The parameters' file is a YAML file that may have parameters for one or more accounts.
 #'The multiple accounts should be linked.
 #'It has the following structure:
 #'---
@@ -120,7 +121,7 @@ getTradeDateMonth = function(dd) {
 #'         "account.number", "account.initValue", "account.startDate"
 #' @export
 #'
-getParams = function() {
+getParams = function(params = "params.yml") {
   params = yaml::read_yaml("params.yml")
   PARS = NULL
   for (k in 1:length(params)){
@@ -488,6 +489,7 @@ countCallsPuts = function(TRADES,symb) {
 #' transferItems.instrument.closingPrice,transferItems.instrument.activeContract,
 #' transferItems.instrument.lastTradingDate,transferItems.instrument.multiplier,
 #' transferItems.instrument.futureType,transferItems.positionEffect
+#' @param assetType is the asset type name to extract from transactions (default = 'OPTION')
 #' @return The data frame with the following columns:
 #'         "accountId","entryDate","exitDate","underSymbol","symbol",
 #'         "entryPrice","exitPrice","amount","entryCommis","exitCommis","pl",
@@ -1122,6 +1124,7 @@ getTradingDates = function() {
 #' @param startDate is the first global trade date
 #' @param endDate is the last global trade date
 #' @param isTest prints additional info if TRUE (default is FALSE)
+#' @param title is the title of day trading report (default is "Option Day Trading Report")
 #'
 #' @return a string of R Markdown code for the account's trades
 #' @export

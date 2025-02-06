@@ -2,16 +2,13 @@
 % Please edit documentation in R/daytrading.R
 \name{getParams}
 \alias{getParams}
-\title{Read the params.yml file that specifies parameters}
+\title{Read the parameters' file that specifies parameters}
 \usage{
-getParams()
+getParams(params = "params.yml")
 }
-\value{
-The data frame with the following fields:
-"account.number", "account.initValue", "account.startDate"
-}
-\description{
-\subsection{The YAML file params.yml may have parameters for one or more accounts.
+\arguments{
+\item{params}{\subsection{is the name of parameters' file (default "params.yml")
+The parameters' file is a YAML file that may have parameters for one or more accounts.
 The multiple accounts should be linked.
 It has the following structure:}{
 \itemize{
@@ -25,5 +22,12 @@ number: '88888888'
 initValue: 30000
 startDate: 2024-01-01
 }
+}}
 }
+\value{
+The data frame with the following fields:
+"account.number", "account.initValue", "account.startDate"
+}
+\description{
+Read the parameters' file that specifies parameters
 }
