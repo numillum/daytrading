@@ -493,6 +493,28 @@ countCallsPuts = function(TRADES,symb) {
 #'
 processOneDayTrades = function(TRANS,assetType = 'OPTION') {
 
+  Symbol = c("/M6A","/M6B","/M6E","/MSF","/MES","/MNQ","/MYM","/M2K","/MGC","/SIL","/MHG","/MCL","/QG","/6A","/6B","/6C","/6E","/6J","/6S","/ES","/NQ","/YM","/RTY","/GC","/PL","/SI","/HG","/CL","/NG")
+  Margin = c(206.44,304.75,395.5,561.88,2627.25,3802.26,1958.5,1171,2064.75,3632.25,1074.75,1824.13,2138.73,2044.13,3027.25,1583.5,3934.75,3989.75,5598.5,26252.25,38002.25,19564.75,11689.75,20627.25,5364.75,18152.25,10727.25,14863.5,8501.4)
+  futuresMargins = data.frame(symbol = Symbol,margin = Margin)
+
+  getFutureSymbol = function(sym) {
+    ss = strsplit(sym,':',fixed = T)[[1]]
+    if (nchar(ss[1]) >= 6) {
+      return(substr(ss[1], 1, nchar(ss[1])-3))
+    } else {
+      return ('')
+    } #endif
+  } #end getFutureSymbol
+
+  getFutureMargin = function(sym) {
+    ind = match(sym,futuresMargins$symbol)
+    if (is.na(ind)) {
+      return(10000)
+    } else {
+      return(futuresMargins$margin[ind])
+    } #endif
+  } #end getFutureMargin
+
   TRADES = data.frame(NULL)
   isFirst = TRUE
   TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == assetType),]
@@ -558,12 +580,24 @@ processOneDayTrades = function(TRANS,assetType = 'OPTION') {
                 exited = 0
                 exitDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
                 winner = ifelse(pl > 0,1,0)
-                capAtRisk = entryPrice*amount*100
+                if (assetType == 'FUTURE') { 'FUTURE'
+                  uSymb = getFutureSymbol(tr$symbol)
+                  if (uSymb == '') {
+                    margin = 10000
+                  } else {
+                    margin = getFutureMargin(uSymb)
+                  } #endif
+                  capAtRisk = margin*amount
+                } else { # 'OPTION'
+                  uSymb = tr$underlyingSymbol
+                  capAtRisk = entryPrice*amount*100
+                } #endif
                 tradeDur = as.numeric(difftime(exitDate,entryDate,units="secs"))
                 # Save the record
                 eDate = getTradeDate(entryDate)
                 roi = pl/capAtRisk*100
-                rec = c(tr$accountNumber,entryDate,exitDate,tr$underlyingSymbol,tr$symbol,entryPrice,exitPrice,amount,entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
+                rec = c(tr$accountNumber,entryDate,exitDate,uSymb,tr$symbol,entryPrice,exitPrice,amount,
+                        entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
                 TRADES = rbind(TRADES,rec)
                 entryDate = exitDate = ''
                 amount = pl = entryPrice = exitPrice = 0;
@@ -577,7 +611,8 @@ processOneDayTrades = function(TRANS,assetType = 'OPTION') {
   } #end for d
   TRADES = data.frame(TRADES)
   if (nrow(TRADES) > 0) {
-    colnames(TRADES) = c("accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount","entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day")
+    colnames(TRADES) = c("accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
+                         "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day")
     TRADES$entryPrice = as.numeric(TRADES$entryPrice)
     TRADES$exitPrice = as.numeric(TRADES$exitPrice)
     TRADES$amount = as.numeric(TRADES$amount)
@@ -1091,7 +1126,7 @@ getTradingDates = function() {
                      '2024-06-19','2024-07-04','2024-09-02','2024-11-28','2024-12-25',
                      '2025-01-01','2025-01-09','2025-01-20','2025-02-17','2025-04-18','2025-05-26',
                      '2025-06-19','2025-07-04','2025-09-01','2025-11-27','2025-12-25'
-                     )
+  )
   dates = seq(lubridate::ymd('2018-01-01'),lubridate::ymd('2025-12-31'), by = 'day')
   dayOfWeek = weekdays(dates)
   workDates = rep(1,length(dates))
