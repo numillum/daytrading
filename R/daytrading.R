@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 # Programmer : Valery Petrushin
 # Creation Date: July 23, 2024
-# Modification Date: September 23, 2024
+# Modification Date: February 12, 2025
 # =============================================================================
 
 ### ======================    F U N C T I O N S   =============================
@@ -282,7 +282,7 @@ getStatistics = function(TRADES,WD,cap,startDate,endDate,curDate,level = 'global
   if (maxLoss >= 0) maxLoss = 0
 
   # == 3 == Number of contracts and capital at risk
-  contracts = sum(TRADES$amount)
+  contracts = sum(abs(TRADES$amount))
   contrTrade = round(contracts/nTrades,2)
   avgCapRisk = round(mean(TRADES$capAtRisk),2)
 
@@ -491,33 +491,12 @@ countCallsPuts = function(TRADES,symb) {
 #'         "winner","capAtRisk","roi","tradeDur","year","month","day"
 #' @export
 #'
-processOneDayTrades = function(TRANS,assetType = 'OPTION') {
+processOneDayTrades = function(TRANS) {
 
-  Symbol = c("/M6A","/M6B","/M6E","/MSF","/MES","/MNQ","/MYM","/M2K","/MGC","/SIL","/MHG","/MCL","/QG","/6A","/6B","/6C","/6E","/6J","/6S","/ES","/NQ","/YM","/RTY","/GC","/PL","/SI","/HG","/CL","/NG")
-  Margin = c(206.44,304.75,395.5,561.88,2627.25,3802.26,1958.5,1171,2064.75,3632.25,1074.75,1824.13,2138.73,2044.13,3027.25,1583.5,3934.75,3989.75,5598.5,26252.25,38002.25,19564.75,11689.75,20627.25,5364.75,18152.25,10727.25,14863.5,8501.4)
-  futuresMargins = data.frame(symbol = Symbol,margin = Margin)
-
-  getFutureSymbol = function(sym) {
-    ss = strsplit(sym,':',fixed = T)[[1]]
-    if (nchar(ss[1]) >= 6) {
-      return(substr(ss[1], 1, nchar(ss[1])-3))
-    } else {
-      return ('')
-    } #endif
-  } #end getFutureSymbol
-
-  getFutureMargin = function(sym) {
-    ind = match(sym,futuresMargins$symbol)
-    if (is.na(ind)) {
-      return(10000)
-    } else {
-      return(futuresMargins$margin[ind])
-    } #endif
-  } #end getFutureMargin
 
   TRADES = data.frame(NULL)
   isFirst = TRUE
-  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == assetType),]
+  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == 'OPTION'),]
   TrDay = unlist(sapply(TRANSOP$time,splitTransDate,simplify = F))
   TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
@@ -580,18 +559,8 @@ processOneDayTrades = function(TRANS,assetType = 'OPTION') {
                 exited = 0
                 exitDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
                 winner = ifelse(pl > 0,1,0)
-                if (assetType == 'FUTURE') { 'FUTURE'
-                  uSymb = getFutureSymbol(tr$symbol)
-                  if (uSymb == '') {
-                    margin = 10000
-                  } else {
-                    margin = getFutureMargin(uSymb)
-                  } #endif
-                  capAtRisk = margin*amount
-                } else { # 'OPTION'
-                  uSymb = tr$underlyingSymbol
-                  capAtRisk = entryPrice*amount*100
-                } #endif
+                uSymb = tr$underlyingSymbol
+                capAtRisk = entryPrice*amount*100
                 tradeDur = as.numeric(difftime(exitDate,entryDate,units="secs"))
                 # Save the record
                 eDate = getTradeDate(entryDate)
@@ -1027,6 +996,7 @@ add_table = function() {
   return(txt)
 } # end add_table
 
+
 #' Create R Markdown code for monthly charts for specific year
 #'
 #' @param y is the year number (2024)
@@ -1061,6 +1031,7 @@ add_table_year = function() {
   txt = paste(txt,"<br>","<br>",sep="\n")
   return(txt)
 } # end add_table_year
+
 
 #' Create R Markdown code for daily charts for specific month
 #'
@@ -1098,7 +1069,7 @@ add_table_month = function() {
 } # end add_table_month
 
 
-#' Create the data frame of market working dates for 2018-2024
+#' Create the data frame of market working dates for 2018-2025
 #'
 #' @return The data frame that has the folloeing fields:
 #'         dates is date in the formay 'yyy-mm-dd'
@@ -1261,6 +1232,413 @@ generateMonthCode = function(TRADES,m,WD,value,startDate,endDate,curDate,isTest 
   return(res)
 } # end generateMonthCode
 
+################################################################################
+######################   FUTURES RELATED FUNCTIONS    ##########################
+################################################################################
+
+#' Get statistics for all futures trades for all symbols
+#'
+#' @param TRADES The data frame of trades with the following fields:
+#'         "accountId","entryDate","exitDate","underSymbol","symbol",
+#'         "entryPrice","exitPrice","amount","entryCommis","exitCommis","pl",
+#'         "winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @return The data frame with the following fields:
+#'   'symbol','nTrades','nWins','pcWins','yield',
+#'   'nCalls','nCallsWins','pcCallsWins',
+#'   'nPuts','nPutsWins','pcPutsWins'
+#' @export
+#'
+getFuturesTickerStatistics = function(TRADES){
+  # == 1 == Symbols used
+  symTable = table(TRADES$underSymbol)
+  symbs = attr(symTable,"dimnames")[[1]]
+  tickStats = NULL
+  for (symb in symbs) {
+    rec = countLongsShorts(TRADES,symb)
+    tickStats = rbind(tickStats,rec)
+  } #end for symb
+  tickStats = data.frame(tickStats)
+  colnames(tickStats) = c('symbol','nTrades','nWins','pcWins','yield','nLongs','nLongsWins','pcLongsWins','nShorts','nShortsWins','pcShortsWins')
+  tickStats$nTrades = as.integer(tickStats$nTrades)
+  tickStats$nWins = as.integer(tickStats$nWins)
+  tickStats$pcWins = as.numeric(tickStats$pcWins)
+  tickStats$yield = as.numeric(tickStats$yield)
+  tickStats$nLongs = as.integer(tickStats$nLongs)
+  tickStats$nLongsWins = as.integer(tickStats$nLongsWins)
+  tickStats$pcLongsWins = as.numeric(tickStats$pcLongsWins)
+  tickStats$nShorts = as.integer(tickStats$nShorts)
+  tickStats$nShortsWins = as.integer(tickStats$nShortsWins)
+  tickStats$pcShortsWins = as.numeric(tickStats$pcShortsWins)
+  return(tickStats)
+} # end getFuturesTickerStatistics
+
+#' Counts futures trades for a future symbol
+#'
+#' @param TRADES The data frame of trades with the following fields:
+#'         "accountId","entryDate","exitDate","underSymbol","symbol",
+#'         "entryPrice","exitPrice","amount","entryCommis","exitCommis","pl",
+#'         "winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @param symb is a future symbol
+#'
+#' @return The data frame with the following fields:
+#'   "symb","nTrades","nWins","pcWins","yield",
+#'   "nLong","nLongWins","pcLongWins",
+#'   "nShort","nShortWins","pcShortWins"
+#'
+countLongsShorts = function(TRADES,symb) {
+  symTR = TRADES[TRADES$underSymbol == symb,c('amount','winner','pl','entryCommis','exitCommis')]
+  yield = sum(symTR$pl) - sum(symTR$entryCommis) - sum(symTR$exitCommis)
+  nTrades = nrow(symTR)
+  nWins = sum(symTR$winner)
+  pcWins = round(nWins/nTrades*100,2)
+  longs = symTR[symTR$amount > 0,]
+  nLongs = nrow(longs)
+  nLongsWins = sum(longs$winner)
+  if (nLongs > 0) {
+    pcLongsWins = round(nLongsWins/nLongs*100,2)
+  } else {
+    pcLongsWins = 0
+  } #endif
+  shorts = symTR[symTR$amount < 0,]
+  nShorts = nrow(shorts)
+  nShortsWins = sum(shorts$winner)
+  if (nShorts > 0) {
+    pcShortsWins = round(nShortsWins/nShorts*100,2)
+  } else {
+    pcShortsWins = 0
+  } # endif
+  return(c(symb,nTrades,nWins,pcWins,yield,nLongs,nLongsWins,pcLongsWins,nShorts,nShortsWins,pcShortsWins))
+} # end countLongsShorts
+
+#'Processes transactions to get futures day trades
+#' @param TRANS The data frame of transactions with the following fields:
+#' activityId,time,accountNumber,type,status,subAccount,tradeDate,orderId,
+#' netAmount,transferItems,assetType,status,symbol,description,instrumentId,
+#' closingPrice,activeContract,expirationDate,lastTradingDate,multiplier,
+#' futureType,amount,cost,price,positionEffect
+#' @return The data frame with the following columns:
+#'         "accountId","entryDate","exitDate","underSymbol","symbol",
+#'         "entryPrice","exitPrice","amount","entryCommis","exitCommis","pl",
+#'         "winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @export
+#'
+processFuturesOneDayTrades = function(TRANS) {
+
+  getFutureSymbol = function(sym) {
+    ss = strsplit(sym,':',fixed = T)[[1]]
+    if (nchar(ss[1]) >= 6) {
+      return(substr(ss[1], 1, nchar(ss[1])-3))
+    } else {
+      return ('')
+    } #endif
+  } #end getFutureSymbol
+
+  getFutureMargin = function(sym) {
+    ind = match(sym,futuresMargins$symbol)
+    if (is.na(ind)) {
+      return(10000)
+    } else {
+      return(futuresMargins$margin[ind])
+    } #endif
+  } #end getFutureMargin
+
+  Symbol = c("/M6A","/M6B","/M6E","/MSF","/MES","/MNQ","/MYM","/M2K","/MGC",
+             "/SIL","/MHG","/MCL","/QG","/6A","/6B","/6C","/6E","/6J","/6S",
+             "/ES","/NQ","/YM","/RTY","/GC","/PL","/SI","/HG","/CL","/NG")
+  Margin = c(206.44,304.75,395.5,561.88,2627.25,3802.26,1958.5,1171,2064.75,
+             3632.25,1074.75,1824.13,2138.73,2044.13,3027.25,1583.5,3934.75,
+             3989.75,5598.5,26252.25,38002.25,19564.75,11689.75,20627.25,
+             5364.75,18152.25,10727.25,14863.5,8501.4)
+  futuresMargins = data.frame(symbol = Symbol,margin = Margin)
+
+  TRADES = data.frame(NULL)
+  isFirst = TRUE
+  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == 'FUTURE'),]
+  TrDay = unlist(sapply(TRANSOP$time,splitTransDate,simplify = F))
+  TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
+  TRANSOP$day = TrDay
+  TRANSOP$trTime = TrTime
+  TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
+  for (k in 1:nrow(TRANSOP)) {
+    if (is.na(TRANSOP$positionEffect[k]) | (TRANSOP$positionEffect[k] == '')) {
+      TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
+    } #endif
+  } #end for k
+
+  uDays = unique(TRANSOP$day)
+
+  for (d in uDays){ # Loop for every day
+    TR = TRANSOP[(TRANSOP$day == d),]
+    if (nrow(TR) > 1) {
+      uSYMB = unique(TR$symbol)
+      for (symb in uSYMB) { # Loop for every symbol
+        TR1 = TR[TR$symbol == symb,]
+        if (nrow(TR1) > 1){
+          TR1 = TR1[order(TR1$trTime),]
+          entryDate = exitDate = ''
+          amount = pl = entryPrice = exitPrice = 0;
+          entryCommis = exitCommis = 0;
+          entered = 0; exited = 0
+          for (k in 1:nrow(TR1)){ # Loop for every trade
+            tr = TR1[k,]
+            print(tr)
+            if (tr$positionEffect == 'OPENING') {
+              if (entered == 0) {
+                entryDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
+                entryYear = getTradeDateYear(entryDate)
+                entryMonth = getTradeDateMonth(entryDate)
+                entryPrice = as.numeric(tr$price)
+                entered = 1
+              } else {
+                trprice = as.numeric(tr$price)
+                tramount = as.numeric(tr$amount)
+                entryPrice = (amount*entryPrice + tramount*trprice)/(amount + tramount)
+              }#endif
+              amount = amount + as.numeric(tr$amount)
+              pl = pl + as.numeric(tr$cost)
+              entryCommis = entryCommis + as.numeric(tr$fees)
+            } #endif
+            if ((tr$positionEffect == 'CLOSING') & (entered == 1)){
+              if (exited == 0) {
+                exitPrice = as.numeric(tr$price)
+                examount = as.numeric(tr$amount)
+                exited = 1
+              } else {
+                trprice = as.numeric(tr$price)
+                tramount = as.numeric(tr$amount)
+                exitPrice = (examount*exitPrice + tramount*trprice)/(examount + tramount)
+                examount = examount + tramount
+              } #endif
+              pl = pl + as.numeric(tr$cost)
+              exitCommis = exitCommis + as.numeric(tr$fees)
+              if (amount + examount == 0) {
+                entered = 0
+                exited = 0
+                exitDate = sub('+0000','',sub('T',' ',tr$time,fixed=T),fixed = T)
+                winner = ifelse(pl > 0,1,0)
+                uSymb = getFutureSymbol(tr$symbol)
+                if (uSymb == '') {
+                  margin = 10000
+                } else {
+                  margin = getFutureMargin(uSymb)
+                } #endif
+                capAtRisk = margin*abs(amount)
+                tradeDur = as.numeric(difftime(exitDate,entryDate,units="secs"))
+                # Save the record
+                eDate = getTradeDate(entryDate)
+                roi = pl/capAtRisk*100
+                rec = c(tr$accountNumber,entryDate,exitDate,uSymb,tr$symbol,entryPrice,exitPrice,amount,
+                        entryCommis,exitCommis,pl,winner,capAtRisk,roi,tradeDur,entryYear,entryMonth,eDate)
+                TRADES = rbind(TRADES,rec)
+                entryDate = exitDate = ''
+                amount = pl = entryPrice = exitPrice = 0;
+                entryCommis = exitCommis = 0;
+              } #endif
+            } #endif
+          } # end for k
+        } #endif
+      } #end for symb
+    } #endif
+  } #end for d
+  TRADES = data.frame(TRADES)
+  if (nrow(TRADES) > 0) {
+    colnames(TRADES) = c("accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
+                         "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day")
+    TRADES$entryPrice = as.numeric(TRADES$entryPrice)
+    TRADES$exitPrice = as.numeric(TRADES$exitPrice)
+    TRADES$amount = as.numeric(TRADES$amount)
+    TRADES$entryCommis = as.numeric(TRADES$entryCommis)
+    TRADES$exitCommis  = as.numeric(TRADES$exitCommis)
+    TRADES$pl  = as.numeric(TRADES$pl)
+    TRADES$winner  = as.numeric(TRADES$winner)
+    TRADES$capAtRisk  = as.numeric(TRADES$capAtRisk)
+    TRADES$roi  = as.numeric(TRADES$roi)
+    TRADES$tradeDur  = as.numeric(TRADES$tradeDur)
+  } #endif
+  return(TRADES)
+} # end processFuturesOneDayTrades
+
+#' Create R Markdown code for futures ticker statistics as a table
+#'
+#' @return text of R Markdown code
+add_futures_table = function() {
+  txt = paste("","```{r  echo = FALSE}",
+              "acTicStats = getTickerStatistics(TRADESAC)",
+              "acTicStats = acTicStats[order(-acTicStats$nTrades),]",
+              "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
+              'Longs','LongsWins','LongsWins%',
+              'Shorts','ShortsWins','ShortsWins%')",
+              "row.names(acTicStats) = c(1:nrow(acTicStats))",
+              "tab = knitr::kable(acTicStats,\"html\", table.attr = \"class=\\\"striped\\\"\",",
+              "caption = \"<span  style=\\\"color: darkblue; text-align:center\\\">Performance by Symbol</span>\",",
+              "align = \"lrrrrrrrrrr\")",
+              "txt = paste0(\"<div class=\\\"scroll\\\">\",tab,\"</div>\")",
+              "```","`r txt`",sep="\n")
+  txt = paste(txt,"<br>","<br>",sep="\n")
+  return(txt)
+} # end add_futures_table
+
+#' Create R Markdown code for futures ticker statistics for specific year as a table
+#'
+#' @return text of R Markdown code
+add_futures_table_year = function() {
+  txt = paste("","```{r  echo = FALSE}",
+              "yTicStats = getTickerStatistics(YTRADES)",
+              "yTicStats = yTicStats[order(-yTicStats$nTrades),]",
+              "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
+              'Longs','LongsWins','LongsWins%',
+              'Shorts','ShortsWins','ShortsWins%')",
+              "row.names(yTicStats) = c(1:nrow(yTicStats))",
+              "tab = knitr::kable(yTicStats,\"html\", table.attr = \"class=\\\"striped\\\"\",",
+              "caption = \"<span  style=\\\"color: darkblue; text-align:center\\\">Performance by Symbol</span>\",",
+              "align = \"lrrrrrrrrrr\")",
+              "txt = paste0(\"<div class=\\\"scroll\\\">\",tab,\"</div>\")",
+              "```",
+              "`r txt`",sep = "\n")
+  txt = paste(txt,"<br>","<br>",sep="\n")
+  return(txt)
+} # end add_futures_table_year
+
+#' Create R Markdown code for futures ticker statistics for specific month as a table
+#'
+#' @return text of R Markdown code
+add_futures_table_month = function() {
+  txt = paste("", "```{r  echo = FALSE}",
+              "dTicStats = getTickerStatistics(MTRADES)",
+              "dTicStats = dTicStats[order(-dTicStats$nTrades),]",
+              "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
+              'Longs','LongsWins','LongsWins%',
+              'Shorts','ShortsWins','ShortsWins%')",
+              "row.names(dTicStats) = c(1:nrow(dTicStats))",
+              "tab = knitr::kable(dTicStats,\"html\", table.attr = \"class=\\\"striped\\\"\",",
+              "caption = \"<span  style=\\\"color: darkblue; text-align:center\\\">Performance by Symbol</span>\",",
+              "align = \"lrrrrrrrrrr\")",
+              "txt = paste0(\"<div class=\\\"scroll\\\">\",tab,\"</div>\")",
+              "```","`r txt`",sep="\n")
+  txt = paste(txt,"<br>","<br>",sep="\n")
+  return(txt)
+} # end add_futures_table_month
+
+#' Generate R Markdown code for an account's futures day trading
+#'
+#' @param tradesFile is the file name of one day futures trades
+#' @param TRADES is the frame of trade data with the following fields:
+#'               "accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
+#'               "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @param ac is the account number
+#' @param curDate is the current date (format yyyy-mm-dd)
+#' @param WD is the frame of market working dates with the following fields:
+#'           "dates","dayOfWeek","workDates"
+#' @param cap is the value of account at the beginning
+#' @param startDate is the first global trade date
+#' @param endDate is the last global trade date
+#' @param isTest prints additional info if TRUE (default is FALSE)
+#' @param title is the title of day trading report (default is "Futures Day Trading Report")
+#'
+#' @return a string of R Markdown code for the account's trades
+#' @export
+#'
+generateFuturesAccountCode = function(tradesFile,TRADES,ac,curDate,WD,cap,startDate,endDate,
+                               isTest = FALSE,title = "Futures Day Trading Report") {
+  author = paste0("Account: ",ac)
+  date = paste0("Date: ",curDate)
+  txt = add_header(title,author,date)
+  txt = paste(txt,add_prefix1(),sep = "\n")
+  txt = paste(txt,add_prefix2(),sep = "\n")
+  txt = paste(txt,add_prefix3(cap,tradesFile),sep = "\n")
+  acStats = getStatistics(TRADES,WD,cap,startDate,endDate,curDate,level = 'global')
+  if (isTest) {
+    print(paste('Total statistics for account',ac))
+    print(acStats)
+    acTicStats = getFuturesTickerStatistics(TRADES)
+    acTicStats = acTicStats[order(-acTicStats$nTrades),]
+    acTimeSeries = getTimeSeries(TRADES,WD,cap,startDate,endDate,curDate,level = 'total')
+    print(acTicStats)
+    print(acTimeSeries)
+  } #endif
+  title1 = '<span  style="color: darkblue;">Performance Statistics </span>'
+  txt = paste(txt, add_title_n(title1,2,tabset = T),sep = "\n")
+  txt = paste(txt,add_title_n("Summary",3),sep = "\n")
+  txt = paste(txt,add_general_statistics(cap,acStats),sep = "\n")
+  txt = paste(txt,add_charts(ac,cap))
+  txt = paste(txt,add_futures_table())
+  return(txt)
+} # end generateFuturesAccountCode
+
+#' Generate R Markdown code for yearly futures day trading
+#'
+#' @param TRADES is the frame of trade data with the following fields:
+#'               "accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
+#'               "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @param y is the number of the year (example: 2024)
+#' @param WD is the frame of market working dates with the following fields:
+#'           "dates","dayOfWeek","workDates"
+#' @param value is the value of portfolio at the beginning of the year
+#' @param startDate is the first global trade date
+#' @param endDate is the last global trade date
+#' @param curDate is thr current date
+#' @param isTest prints additional info if TRUE (default is FALSE)
+#'
+#' @return a string of R Markdown code for the yearly trades
+#' @export
+#'
+generateFuturesYearCode = function(TRADES,y,WD,value,startDate,endDate,curDate,isTest = FALSE) {
+  yStats = getStatistics(TRADES,WD,value,startDate,endDate,curDate,level = 'year')
+  if (isTest) {
+    print(paste('Yearly statistics for year',y))
+    print(yStats)
+    yTicStats = getFuturesTickerStatistics(TRADES)
+    yTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,curDate,level = 'total')
+    print(yTicStats)
+    print(yTimeSeries)
+  } #endif
+  txt = add_title_n(y,3,tabset = T)
+  txt = paste(txt,add_title_n("General Statistics",4),sep = "\n")
+  txt = paste(txt,add_general_statistics(value,yStats),sep = "\n")
+  txt = paste(txt,add_charts_year(y,value))
+  txt = paste(txt,add_futures_table_year())
+  return(txt)
+} # end generateFuturesYearCode
+
+#' Generate R Markdown code for monthly futures day trading
+#'
+#' @param TRADES is the frame of trade data with the following fields:
+#'               "accountId","entryDate","exitDate","underSymbol","symbol","entryPrice","exitPrice","amount",
+#'               "entryCommis","exitCommis","pl","winner","capAtRisk","roi","tradeDur","year","month","day"
+#' @param m is the number of the month (1-12)
+#' @param WD is the frame of market working dates with the following fields:
+#'           "dates","dayOfWeek","workDates"
+#' @param value is the value of portfolio at the beginning of the month
+#' @param startDate is the first global trade date
+#' @param endDate is the last global trade date
+#' @param curDate is thr current date
+#' @param isTest prints additional info if TRUE (default is FALSE)
+#'
+#' @return a structure with two fields: $txt is R Markdown code and $value is portfolio value at the end of month
+#' @export
+#'
+generateFuturesMonthCode = function(TRADES,m,WD,value,startDate,endDate,curDate,isTest = FALSE) {
+  res = NULL
+  monthName = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  TRADES = TRADES[order(TRADES$entryDate),]
+  dStats = getStatistics(TRADES,WD,value,startDate,endDate,curDate,level = 'month')
+  m = as.integer(m)
+  if (isTest) {
+    print(paste('Monthly statistics for month',m))
+    print(dStats)
+    dTicStats = getFuturesTickerStatistics(TRADES)
+    dTimeSeries = getTimeSeries(TRADES,WD,value,startDate,endDate,curDate,level = 'daily')
+    print(dTicStats)
+    print(dTimeSeries)
+  } #endif
+  txt = add_title_n(monthName[m],4)
+  txt = paste(txt,add_general_statistics(value,dStats),sep = "\n")
+  txt = paste(txt,add_charts_month(m,value))
+  txt = paste(txt,add_futures_table_month())
+  res$txt = txt
+  res$value = value + dStats[3]
+  return(res)
+} # end generateFuturesMonthCode
 
 ### ================   E N D      F U N C T I O N S   =========================
 
