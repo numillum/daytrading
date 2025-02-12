@@ -13,6 +13,18 @@
 
 STDATE = format(Sys.Date() - 252,format = "%Y-%m-%d") # date a 3 month ago
 
+
+#' Checks if a string a valid date
+#'
+#' @param dd is a string of format mm-dd-yyyy
+#'
+#' @return a logical value TRUE or FALSE
+#' @export
+checkdate <- function(dd) {
+  tryCatch(lubridate::is.Date(as.Date(dd)),
+           error = function(e) return(FALSE))
+} #end checkdate
+
 #' Converts a number to US dollar format
 #'
 #' @param money a number

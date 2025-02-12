@@ -4,7 +4,7 @@
 \alias{processOneDayTrades}
 \title{Gets day trades}
 \usage{
-processOneDayTrades(TRANS, assetType = "OPTION")
+processOneDayTrades(TRANS)
 }
 \arguments{
 \item{TRANS}{The data frame of transactions with the following fields:
