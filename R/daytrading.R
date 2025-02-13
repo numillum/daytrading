@@ -1475,7 +1475,7 @@ processFuturesOneDayTrades = function(TRANS) {
 #' @return text of R Markdown code
 add_futures_table = function() {
   txt = paste("","```{r  echo = FALSE}",
-              "acTicStats = getTickerStatistics(TRADESAC)",
+              "acTicStats = getFuturesTickerStatistics(TRADESAC)",
               "acTicStats = acTicStats[order(-acTicStats$nTrades),]",
               "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
               'Longs','LongsWins','LongsWins%',
@@ -1495,7 +1495,7 @@ add_futures_table = function() {
 #' @return text of R Markdown code
 add_futures_table_year = function() {
   txt = paste("","```{r  echo = FALSE}",
-              "yTicStats = getTickerStatistics(YTRADES)",
+              "yTicStats = getFuturesTickerStatistics(YTRADES)",
               "yTicStats = yTicStats[order(-yTicStats$nTrades),]",
               "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
               'Longs','LongsWins','LongsWins%',
@@ -1516,7 +1516,7 @@ add_futures_table_year = function() {
 #' @return text of R Markdown code
 add_futures_table_month = function() {
   txt = paste("", "```{r  echo = FALSE}",
-              "dTicStats = getTickerStatistics(MTRADES)",
+              "dTicStats = getFuturesTickerStatistics(MTRADES)",
               "dTicStats = dTicStats[order(-dTicStats$nTrades),]",
               "colnames(acTicStats) = c('Symbol','Trades','Wins','Wins%','Yield',
               'Longs','LongsWins','LongsWins%',
