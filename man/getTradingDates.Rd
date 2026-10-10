@@ -2,7 +2,7 @@
 % Please edit documentation in R/daytrading.R
 \name{getTradingDates}
 \alias{getTradingDates}
-\title{Create the data frame of market working dates for 2018-2025}
+\title{Create the data frame of market working dates for 2018-2027}
 \usage{
 getTradingDates()
 }
@@ -13,7 +13,7 @@ dayOfWeek is the corresponding day of week Sunday - Saturday
 workDates = 1 if it is market work day or = 0 otherwise
 }
 \description{
-Create the data frame of market working dates for 2018-2025
+Create the data frame of market working dates for 2018-2027
 }
 \examples{
       WD = getTradingDates()

@@ -1081,7 +1081,7 @@ add_table_month = function() {
 } # end add_table_month
 
 
-#' Create the data frame of market working dates for 2018-2025
+#' Create the data frame of market working dates for 2018-2027
 #'
 #' @return The data frame that has the folloeing fields:
 #'         dates is date in the formay 'yyy-mm-dd'
@@ -1092,7 +1092,7 @@ add_table_month = function() {
 #' @examples
 #'       WD = getTradingDates()
 getTradingDates = function() {
-  # === Working dates 2018 - 2025
+  # === Working dates 2018 - 2027
   marketHolidays = c('2018-01-01','2018-01-15','2018-02-19','2018-03-30','2018-05-28',
                      '2018-07-04','2018-09-03','2018-11-22','2018-12-25',
                      '2019-01-01','2019-01-21','2019-02-18','2019-04-19','2019-05-27',
@@ -1114,7 +1114,7 @@ getTradingDates = function() {
                      '2027-01-01','2027-01-18','2027-02-15','2027-03-26','2027-05-31',
                      '2027-06-18','2027-07-05','2027-09-06','2027-11-25','2027-12-24'
   )
-  dates = seq(lubridate::ymd('2018-01-01'),lubridate::ymd('2025-12-31'), by = 'day')
+  dates = seq(lubridate::ymd('2018-01-01'),lubridate::ymd('2027-12-31'), by = 'day')
   dayOfWeek = weekdays(dates)
   workDates = rep(1,length(dates))
   workDates[dayOfWeek == "Saturday"] = 0
