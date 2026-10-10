@@ -9,3 +9,5 @@ git push -u origin v0.0.1.0
 
 library(devtools)
 install_github("numillum/daytrading")
+
+$ git push origin <branch_name>

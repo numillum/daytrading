@@ -1,0 +1,95 @@
+
+generateAccountCode
+    add_charts
+    add_general_statistics
+        toUSD
+    add_header
+    add_prefix1
+    add_prefix2
+    add_prefix3
+    add_table
+    add_title_n
+    getStatistics
+    getTickerStatistics
+        countCallsPuts
+    getTimeSeries
+        getStatistics
+        getTradeDate
+generateFuturesAccountCode
+    add_charts
+    add_futures_table
+    add_general_statistics
+        toUSD
+    add_header
+    add_prefix1
+    add_prefix2
+    add_prefix3
+    add_title_n
+    getFuturesTickerStatistics
+        countLongsShorts
+    getStatistics
+    getTimeSeries
+        getStatistics
+        getTradeDate
+generateFuturesMonthCode
+    add_charts_month
+    add_futures_table_month
+    add_general_statistics
+        toUSD
+    add_title_n
+    getFuturesTickerStatistics
+        countLongsShorts
+    getStatistics
+    getTimeSeries
+        getStatistics
+        getTradeDate
+generateFuturesYearCode
+    add_charts_year
+    add_futures_table_year
+    add_general_statistics
+        toUSD
+    add_title_n
+    getFuturesTickerStatistics
+        countLongsShorts
+    getStatistics
+    getTimeSeries
+        getStatistics
+        getTradeDate
+generateMonthCode
+    add_charts_month
+    add_general_statistics
+        toUSD
+    add_table_month
+    add_title_n
+    getStatistics
+    getTickerStatistics
+        countCallsPuts
+    getTimeSeries
+        getStatistics
+        getTradeDate
+generateYearCode
+    add_charts_year
+    add_general_statistics
+        toUSD
+    add_table_year
+    add_title_n
+    getStatistics
+    getTickerStatistics
+        countCallsPuts
+    getTimeSeries
+        getStatistics
+        getTradeDate
+getTradingStatistics
+    getStatistics
+processFuturesOneDayTrades
+    getTradeDate
+    getTradeDateMonth
+    getTradeDateYear
+    splitTransDate
+    splitTransTime
+processOneDayTrades
+    getTradeDate
+    getTradeDateMonth
+    getTradeDateYear
+    splitTransDate
+    splitTransTime
