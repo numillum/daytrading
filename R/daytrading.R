@@ -508,7 +508,14 @@ processOneDayTrades = function(TRANS) {
 
   TRADES = data.frame(NULL)
   isFirst = TRUE
-  TRANSOP = TRANS[(TRANS$type == 'TRADE') & (TRANS$assetType == 'OPTION'),]
+  TRANSOP = TRANS[which((TRANS$type == 'TRADE') & (TRANS$assetType == 'OPTION')),]
+  # Schwab occasionally returns an option trade without its symbol; rebuild a
+  # contract key from its parts so NA symbols don't create all-NA rows below
+  naSym = is.na(TRANSOP$symbol) | (TRANSOP$symbol == '')
+  if (any(naSym)) {
+    TRANSOP$symbol[naSym] = paste(TRANSOP$underlyingSymbol[naSym], substr(TRANSOP$expirationDate[naSym], 1, 10),
+                                  TRANSOP$putCall[naSym], TRANSOP$strikePrice[naSym])
+  } #endif
   TrDay = unlist(sapply(TRANSOP$time,splitTransDate,simplify = F))
   TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
@@ -523,11 +530,11 @@ processOneDayTrades = function(TRANS) {
   uDays = unique(TRANSOP$day)
 
   for (d in uDays){ # Loop for every day
-    TR = TRANSOP[(TRANSOP$day == d),]
+    TR = TRANSOP[which(TRANSOP$day == d),]
     if (nrow(TR) > 1) {
       uSYMB = unique(TR$symbol)
       for (symb in uSYMB) { # Loop for every symbol
-        TR1 = TR[TR$symbol == symb,]
+        TR1 = TR[which(TR$symbol == symb),]
         if (nrow(TR1) > 1){
           TR1 = TR1[order(TR1$trTime),]
           entryDate = exitDate = ''
