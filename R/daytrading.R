@@ -481,6 +481,27 @@ countCallsPuts = function(TRADES,symb) {
 } # end countCallsPuts
 
 
+# Fees per transferred item. Schwab reports one netAmount per transaction
+# (activityId); a reversal or a spread has several items in one transaction,
+# and getTransactions() repeats that whole netAmount on every item. So the
+# fees of a transaction = sum(cost of its items) - netAmount, and are split
+# among its items in proportion to |amount|.
+allocateTransactionFees = function(TRANSOP) {
+  key = if ("activityId" %in% colnames(TRANSOP)) as.character(TRANSOP$activityId) else as.character(seq_len(nrow(TRANSOP)))
+  key[is.na(key)] = paste0("row", which(is.na(key)))
+  cost = as.numeric(TRANSOP$cost)
+  net = as.numeric(TRANSOP$netAmount)
+  qty = abs(as.numeric(TRANSOP$amount))
+  fees = cost - net
+  for (g in unique(key[duplicated(key)])) {
+    ii = which(key == g)
+    totalFees = sum(cost[ii]) - net[ii[1]]
+    w = if (sum(qty[ii]) > 0) qty[ii]/sum(qty[ii]) else rep(1/length(ii), length(ii))
+    fees[ii] = totalFees * w
+  } #end for g
+  return(fees)
+} #end allocateTransactionFees
+
 #' Gets day trades
 #'
 #'Processes transactions to get option day trades
@@ -520,7 +541,7 @@ processOneDayTrades = function(TRANS) {
   TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
   TRANSOP$trTime = TrTime
-  TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
+  TRANSOP$fees = allocateTransactionFees(TRANSOP)
   for (k in 1:nrow(TRANSOP)) {
     if (is.na(TRANSOP$positionEffect[k]) | (TRANSOP$positionEffect[k] == '')) {
       TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
@@ -536,7 +557,7 @@ processOneDayTrades = function(TRANS) {
       for (symb in uSYMB) { # Loop for every symbol
         TR1 = TR[which(TR$symbol == symb),]
         if (nrow(TR1) > 1){
-          TR1 = TR1[order(TR1$trTime),]
+          TR1 = TR1[order(TR1$trTime, TR1$positionEffect != 'CLOSING'),]  # same time: close before open (reversals)
           entryDate = exitDate = ''
           amount = pl = entryPrice = exitPrice = 0;
           entryCommis = exitCommis = 0;
@@ -1381,7 +1402,7 @@ processFuturesOneDayTrades = function(TRANS) {
   TrTime = unlist(sapply(TRANSOP$time,splitTransTime,simplify = F))
   TRANSOP$day = TrDay
   TRANSOP$trTime = TrTime
-  TRANSOP$fees = TRANSOP$cost - TRANSOP$netAmount
+  TRANSOP$fees = allocateTransactionFees(TRANSOP)
   for (k in 1:nrow(TRANSOP)) {
     if (is.na(TRANSOP$positionEffect[k]) | (TRANSOP$positionEffect[k] == '')) {
       TRANSOP$positionEffect[k] = ifelse(TRANSOP$amount[k] > 0, "OPENING", "CLOSING")
@@ -1397,7 +1418,7 @@ processFuturesOneDayTrades = function(TRANS) {
       for (symb in uSYMB) { # Loop for every symbol
         TR1 = TR[TR$symbol == symb,]
         if (nrow(TR1) > 1){
-          TR1 = TR1[order(TR1$trTime),]
+          TR1 = TR1[order(TR1$trTime, TR1$positionEffect != 'CLOSING'),]  # same time: close before open (reversals)
           entryDate = exitDate = ''
           amount = pl = entryPrice = exitPrice = 0;
           entryCommis = exitCommis = 0;
